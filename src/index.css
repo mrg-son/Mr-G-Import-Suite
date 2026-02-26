@@ -1,96 +1,124 @@
+@import url('https://fonts.googleapis.com/css2?family=Satoshi:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Mr.G Suite — Ocean Deep Design System */
+
+@font-face {
+  font-family: 'Clash Display';
+  src: url('https://fonts.cdnfonts.com/css/clash-display');
+  font-display: swap;
+}
+
+@import url('https://fonts.cdnfonts.com/css/clash-display');
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Light mode — Ciel et Horizon */
+    --background: 30 25% 93%;
+    --foreground: 220 20% 15%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 30 20% 96%;
+    --card-foreground: 220 20% 15%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 30 20% 96%;
+    --popover-foreground: 220 20% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 174 52% 35%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 30 15% 88%;
+    --secondary-foreground: 220 20% 15%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 30 12% 90%;
+    --muted-foreground: 220 10% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 42 70% 54%;
+    --accent-foreground: 220 20% 10%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 4 74% 55%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 30 15% 85%;
+    --input: 30 15% 85%;
+    --ring: 174 52% 35%;
 
-    --radius: 0.5rem;
+    --radius: 1rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Brand tokens */
+    --teal: 174 52% 35%;
+    --teal-light: 170 52% 47%;
+    --or: 42 52% 54%;
+    --bleu-mer: 211 79% 42%;
+    --noir-mat: 0 0% 7%;
+    --surface-sombre: 200 33% 15%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    /* Status colors */
+    --status-en-cours: 51 100% 50%;
+    --status-arrive: 207 100% 50%;
+    --status-recupere: 145 100% 45%;
+    --status-livre: 130 53% 33%;
 
-    --sidebar-primary: 240 5.9% 10%;
+    /* Glassmorphism */
+    --glass-bg: 30 20% 96% / 0.7;
+    --glass-border: 0 0% 100% / 0.3;
+    --glass-shadow: 0 0% 0% / 0.05;
+    --glass-blur: 40px;
 
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sidebar */
+    --sidebar-background: 200 33% 15%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-primary: 174 52% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 200 25% 20%;
+    --sidebar-accent-foreground: 0 0% 96%;
+    --sidebar-border: 200 20% 25%;
+    --sidebar-ring: 174 52% 35%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 0 0% 7%;
+    --foreground: 210 40% 96%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 200 33% 15%;
+    --card-foreground: 210 40% 96%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 200 33% 15%;
+    --popover-foreground: 210 40% 96%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 174 52% 35%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 200 25% 20%;
+    --secondary-foreground: 210 40% 96%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 200 20% 18%;
+    --muted-foreground: 210 15% 60%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 42 52% 54%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 4 74% 55%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --border: 200 20% 22%;
+    --input: 200 20% 22%;
+    --ring: 174 52% 35%;
+
+    --glass-bg: 200 33% 15% / 0.15;
+    --glass-border: 0 0% 100% / 0.15;
+    --glass-shadow: 0 0% 0% / 0.3;
+
+    --sidebar-background: 200 33% 12%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 174 52% 35%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 200 25% 18%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 200 20% 20%;
+    --sidebar-ring: 174 52% 35%;
   }
 }
 
@@ -101,5 +129,113 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Satoshi', sans-serif;
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Clash Display', 'Satoshi', sans-serif;
+  }
+}
+
+@layer utilities {
+  .glass {
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    background: hsl(var(--glass-bg));
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.1), 0 8px 32px hsl(var(--glass-shadow));
+  }
+
+  .glass-card {
+    @apply glass;
+    border-radius: 20px;
+  }
+
+  .glass-nav {
+    @apply glass;
+    border-radius: 0;
+  }
+
+  .font-clash {
+    font-family: 'Clash Display', 'Satoshi', sans-serif;
+  }
+
+  .font-satoshi {
+    font-family: 'Satoshi', sans-serif;
+  }
+
+  .text-gradient-teal {
+    background: linear-gradient(135deg, hsl(var(--teal)), hsl(var(--teal-light)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-or {
+    background: linear-gradient(135deg, hsl(var(--or)), hsl(42 70% 65%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-gradient-ocean {
+    background: linear-gradient(180deg, hsl(var(--noir-mat)), hsl(var(--surface-sombre)));
+  }
+}
+
+/* Animated ocean blobs */
+@keyframes blob-float-1 {
+  0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+  25% { transform: translate(30px, -50px) scale(1.1) rotate(5deg); }
+  50% { transform: translate(-20px, -80px) scale(0.95) rotate(-3deg); }
+  75% { transform: translate(50px, -30px) scale(1.05) rotate(2deg); }
+}
+
+@keyframes blob-float-2 {
+  0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+  33% { transform: translate(-40px, 60px) scale(1.15) rotate(-4deg); }
+  66% { transform: translate(60px, 30px) scale(0.9) rotate(6deg); }
+}
+
+@keyframes blob-float-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(40px, -60px) scale(1.1); }
+}
+
+@keyframes blob-float-4 {
+  0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+  40% { transform: translate(-50px, -40px) scale(1.08) rotate(-5deg); }
+  80% { transform: translate(30px, 50px) scale(0.92) rotate(3deg); }
+}
+
+@keyframes ripple {
+  0% { transform: scale(0.8); opacity: 0.6; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+@keyframes caustic {
+  0%, 100% { opacity: 0.3; transform: scale(1) rotate(0deg); }
+  50% { opacity: 0.6; transform: scale(1.1) rotate(180deg); }
+}
+
+.blob {
+  will-change: transform;
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+.blob-1 { animation: blob-float-1 20s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+.blob-2 { animation: blob-float-2 25s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+.blob-3 { animation: blob-float-3 18s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+.blob-4 { animation: blob-float-4 22s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+
+.ripple-ring {
+  will-change: transform, opacity;
+  animation: ripple 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid hsl(var(--teal) / 0.2);
+  pointer-events: none;
 }
