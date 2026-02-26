@@ -8,13 +8,16 @@ import SplashScreen from '@/components/SplashScreen';
 import AppNavbar from '@/components/AppNavbar';
 import Dashboard from '@/components/Dashboard';
 import FreightCalculator from '@/components/FreightCalculator';
-import ComingSoon from '@/components/ComingSoon';
+import DevisMaker from '@/components/DevisMaker';
+import ImportTracker from '@/components/ImportTracker';
+import SettingsModule from '@/components/SettingsModule';
 
 const Index = () => {
   const {
     screen, lang, theme, userName,
     setLang, setTheme,
     completeOnboarding, unlockPin, enterApp,
+    setUserName,
   } = useAppState();
 
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -31,6 +34,10 @@ const Index = () => {
     return <SplashScreen lang={lang} userName={userName} onEnter={enterApp} />;
   }
 
+  const handleReset = () => {
+    window.location.reload();
+  };
+
   return (
     <div className="min-h-screen bg-background relative">
       <OceanBackground />
@@ -46,22 +53,13 @@ const Index = () => {
       <div className="relative z-10">
         {activeTab === 'dashboard' && <Dashboard lang={lang} onNavigate={setActiveTab} />}
         {activeTab === 'freight' && <FreightCalculator lang={lang} />}
-        {activeTab === 'devis' && (
-          <ComingSoon
-            title={t('devisMaker', lang)}
-            description={lang === 'fr' ? 'Module Devis Maker — bientôt disponible' : 'Quote Maker module — coming soon'}
-          />
-        )}
-        {activeTab === 'orders' && (
-          <ComingSoon
-            title={t('importTracker', lang)}
-            description={lang === 'fr' ? 'Module Import Tracker — bientôt disponible' : 'Import Tracker module — coming soon'}
-          />
-        )}
+        {activeTab === 'devis' && <DevisMaker lang={lang} onNavigate={setActiveTab} />}
+        {activeTab === 'orders' && <ImportTracker lang={lang} />}
         {activeTab === 'settings' && (
-          <ComingSoon
-            title={t('settings', lang)}
-            description={lang === 'fr' ? 'Module Paramètres — bientôt disponible' : 'Settings module — coming soon'}
+          <SettingsModule
+            lang={lang}
+            onReset={handleReset}
+            onProfileUpdate={(name) => setUserName(name)}
           />
         )}
       </div>
