@@ -143,6 +143,16 @@ export const LABELS = {
     productImage: "Image",
     preview: "Aperçu",
     noDevis: "Aucun devis créé",
+    paymentInfo: "Informations de paiement",
+    moovPhone: "N° Moov Africa",
+    yasPhone: "N° Yas/Mixx",
+    resetDevis: "Réinitialiser le devis",
+    totalGeneral: "Total Général",
+    calcBoatFees: "Calculer frais bateau",
+    calcPlaneFees: "Calculer frais avion",
+    enterDimensions: "Entrez les dimensions",
+    enterWeight: "Entrez le poids",
+    applyCalc: "Appliquer",
 
     // Import Tracker
     trackerTitle: "Import Tracker",
@@ -335,6 +345,16 @@ export const LABELS = {
     productImage: "Image",
     preview: "Preview",
     noDevis: "No quotes created",
+    paymentInfo: "Payment information",
+    moovPhone: "Moov Africa #",
+    yasPhone: "Yas/Mixx #",
+    resetDevis: "Reset quote",
+    totalGeneral: "Grand Total",
+    calcBoatFees: "Calculate sea fees",
+    calcPlaneFees: "Calculate air fees",
+    enterDimensions: "Enter dimensions",
+    enterWeight: "Enter weight",
+    applyCalc: "Apply",
 
     // Import Tracker
     trackerTitle: "Import Tracker",

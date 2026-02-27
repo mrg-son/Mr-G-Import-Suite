@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { t } from '@/lib/i18n';
 import { storage } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
-import { User, Building, Shield, Download, Upload, ToggleLeft, ToggleRight, AlertTriangle, Save, Image } from 'lucide-react';
+import { User, Building, Shield, Download, Upload, ToggleLeft, ToggleRight, AlertTriangle, Save, Image, Phone } from 'lucide-react';
 
 interface SettingsModuleProps {
   lang: 'fr' | 'en';
@@ -16,6 +16,7 @@ const CURRENCIES = ['XOF', 'EUR', 'USD', 'GBP', 'CAD'];
 const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps) => {
   const { toast } = useToast();
   const profil = storage.getProfil();
+  const paymentData = storage.getPayment();
   
   const [firstName, setFirstName] = useState(storage.getUser() || '');
   const [companyName, setCompanyName] = useState(profil.nom || '');
@@ -23,6 +24,8 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
   const [devise, setDevise] = useState(profil.devise || 'XOF');
   const [reminderDays, setReminderDays] = useState(storage.getReminderDays());
   const [autosave, setAutosave] = useState(storage.getAutosave());
+  const [moovPhone, setMoovPhone] = useState(paymentData.moovPhone || '+228 70 55 43 45');
+  const [yasPhone, setYasPhone] = useState(paymentData.yasPhone || '+228 98 58 70 76');
   
   // PIN change
   const [oldPin, setOldPin] = useState('');
@@ -37,6 +40,7 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
     storage.setUser(firstName);
     storage.setProfil({ nom: companyName, logo, devise });
     storage.setReminderDays(reminderDays);
+    storage.setPayment({ moovPhone, yasPhone });
     onProfileUpdate(firstName);
     toast({ title: t('saved', lang) });
   };
@@ -191,6 +195,27 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
             <button onClick={saveProfile} className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-clash font-bold uppercase tracking-wider hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
               <Save size={18} /> {t('saved', lang)}
             </button>
+          </div>
+        </div>
+
+        {/* Payment Info */}
+        <div className="glass-card p-6 mb-6">
+          <h2 className="font-clash font-bold uppercase tracking-wider text-lg mb-4 flex items-center gap-2">
+            <Phone size={20} className="text-bleu-mer" /> {t('paymentInfo', lang)}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground mb-1 font-satoshi flex items-center gap-2">
+                <img src="/images/moov-africa.jpg" alt="Moov" className="w-6 h-6 rounded" /> {t('moovPhone', lang)}
+              </label>
+              <input value={moovPhone} onChange={e => setMoovPhone(e.target.value)} className={inputClass} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground mb-1 font-satoshi flex items-center gap-2">
+                <img src="/images/yas-mixx.jpg" alt="Yas" className="w-6 h-6 rounded" /> {t('yasPhone', lang)}
+              </label>
+              <input value={yasPhone} onChange={e => setYasPhone(e.target.value)} className={inputClass} />
+            </div>
           </div>
         </div>
 
