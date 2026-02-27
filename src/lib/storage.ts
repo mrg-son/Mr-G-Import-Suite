@@ -57,6 +57,11 @@ export interface MrgDevis {
   createdAt: string;
 }
 
+export interface MrgPaymentInfo {
+  moovPhone: string;
+  yasPhone: string;
+}
+
 const KEYS = {
   user: 'mrg_user',
   pin: 'mrg_pin',
@@ -68,6 +73,7 @@ const KEYS = {
   devis: 'mrg_devis',
   profil: 'mrg_profil',
   tutorialSeen: 'mrg_tutorial_seen',
+  payment: 'mrg_payment',
 } as const;
 
 export const storage = {
@@ -110,6 +116,12 @@ export const storage = {
 
   isTutorialSeen: (): boolean => localStorage.getItem(KEYS.tutorialSeen) === 'true',
   setTutorialSeen: () => localStorage.setItem(KEYS.tutorialSeen, 'true'),
+
+  getPayment: (): MrgPaymentInfo => {
+    try { return JSON.parse(localStorage.getItem(KEYS.payment) || '{}'); }
+    catch { return { moovPhone: '+228 70 55 43 45', yasPhone: '+228 98 58 70 76' }; }
+  },
+  setPayment: (p: MrgPaymentInfo) => localStorage.setItem(KEYS.payment, JSON.stringify(p)),
 
   isFirstLaunch: (): boolean => !localStorage.getItem(KEYS.user),
 
