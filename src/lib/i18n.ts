@@ -1,6 +1,9 @@
 export const LABELS = {
   fr: {
-    // Onboarding
+    // Welcome & Onboarding
+    welcomeTitle: "Bienvenue sur Mr.G Suite",
+    welcomeDesc: "Nous allons configurer votre espace en quelques étapes. Gérez vos imports, créez des devis et suivez vos commandes.",
+    welcomeButton: "Commencer la configuration",
     onboardingStep1Title: "Quel est votre prénom ?",
     onboardingStep1Placeholder: "Votre prénom",
     onboardingStep2Title: "Créez votre code PIN",
@@ -195,6 +198,9 @@ export const LABELS = {
     noClient: "Aucun client trouvé pour",
   },
   en: {
+    welcomeTitle: "Welcome to Mr.G Suite",
+    welcomeDesc: "We'll set up your workspace in a few steps. Manage your imports, create quotes and track your orders.",
+    welcomeButton: "Start setup",
     onboardingStep1Title: "What is your first name?",
     onboardingStep1Placeholder: "Your first name",
     onboardingStep2Title: "Create your PIN code",

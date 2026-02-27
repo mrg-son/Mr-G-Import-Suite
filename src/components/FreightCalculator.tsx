@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { t } from '@/lib/i18n';
 import { Ship, Plane, Scale, Package, ArrowLeft } from 'lucide-react';
+import MultiPackageCalculator from './MultiPackageCalculator';
 
 interface FreightCalculatorProps {
   lang: 'fr' | 'en';
@@ -244,11 +245,7 @@ const FreightCalculator = ({ lang }: FreightCalculatorProps) => {
                   </div>
                 </div>
               )}
-              {mode === 'multi' && (
-                <p className="text-muted-foreground font-satoshi text-center py-8">
-                  {lang === 'fr' ? 'Mode multi-colis — bientôt disponible' : 'Multi-package mode — coming soon'}
-                </p>
-              )}
+              {mode === 'multi' && <MultiPackageCalculator lang={lang} />}
             </div>
           </motion.div>
         )}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { useAppState } from '@/hooks/useAppState';
 import { t } from '@/lib/i18n';
 import OceanBackground from '@/components/OceanBackground';
@@ -11,6 +12,7 @@ import FreightCalculator from '@/components/FreightCalculator';
 import DevisMaker from '@/components/DevisMaker';
 import ImportTracker from '@/components/ImportTracker';
 import SettingsModule from '@/components/SettingsModule';
+import ModuleTransition from '@/components/ModuleTransition';
 
 const Index = () => {
   const {
@@ -51,17 +53,37 @@ const Index = () => {
         onToggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
       />
       <div className="relative z-10">
-        {activeTab === 'dashboard' && <Dashboard lang={lang} onNavigate={setActiveTab} />}
-        {activeTab === 'freight' && <FreightCalculator lang={lang} />}
-        {activeTab === 'devis' && <DevisMaker lang={lang} onNavigate={setActiveTab} />}
-        {activeTab === 'orders' && <ImportTracker lang={lang} />}
-        {activeTab === 'settings' && (
-          <SettingsModule
-            lang={lang}
-            onReset={handleReset}
-            onProfileUpdate={(name) => setUserName(name)}
-          />
-        )}
+        <AnimatePresence mode="wait">
+          {activeTab === 'dashboard' && (
+            <ModuleTransition key="dashboard" type="dashboard">
+              <Dashboard lang={lang} onNavigate={setActiveTab} />
+            </ModuleTransition>
+          )}
+          {activeTab === 'freight' && (
+            <ModuleTransition key="freight" type="freight">
+              <FreightCalculator lang={lang} />
+            </ModuleTransition>
+          )}
+          {activeTab === 'devis' && (
+            <ModuleTransition key="devis" type="devis">
+              <DevisMaker lang={lang} onNavigate={setActiveTab} />
+            </ModuleTransition>
+          )}
+          {activeTab === 'orders' && (
+            <ModuleTransition key="orders" type="orders">
+              <ImportTracker lang={lang} />
+            </ModuleTransition>
+          )}
+          {activeTab === 'settings' && (
+            <ModuleTransition key="settings" type="settings">
+              <SettingsModule
+                lang={lang}
+                onReset={handleReset}
+                onProfileUpdate={(name) => setUserName(name)}
+              />
+            </ModuleTransition>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

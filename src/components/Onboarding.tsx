@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { storage } from '@/lib/storage';
 import { t } from '@/lib/i18n';
 import OceanBackground from './OceanBackground';
+import { Ship, Anchor, Compass } from 'lucide-react';
 
 interface OnboardingProps {
   lang: 'fr' | 'en';
@@ -10,6 +11,7 @@ interface OnboardingProps {
 }
 
 const Onboarding = ({ lang, onComplete }: OnboardingProps) => {
+  // step 0 = welcome, 1 = name, 2 = pin, 3 = company, 4 = prefs
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [pin, setPin] = useState(['', '', '', '']);
@@ -49,27 +51,32 @@ const Onboarding = ({ lang, onComplete }: OnboardingProps) => {
   };
 
   useEffect(() => {
-    if (step === 1 && !isConfirming) pinRefs.current[0]?.focus();
-    if (step === 1 && isConfirming) confirmPinRefs.current[0]?.focus();
+    if (step === 2 && !isConfirming) pinRefs.current[0]?.focus();
+    if (step === 2 && isConfirming) confirmPinRefs.current[0]?.focus();
   }, [step, isConfirming]);
+
+  const totalSteps = 5;
 
   const canContinue = () => {
     switch (step) {
-      case 0: return name.trim().length > 0;
-      case 1:
+      case 0: return true; // welcome
+      case 1: return name.trim().length > 0;
+      case 2:
         if (!isConfirming) return pin.every(d => d !== '');
         return confirmPin.every(d => d !== '');
-      case 2: return company.trim().length > 0;
-      case 3: return true;
+      case 3: return company.trim().length > 0;
+      case 4: return true;
       default: return false;
     }
   };
 
   const handleNext = () => {
     if (step === 0) {
-      storage.setUser(name.trim());
       setStep(1);
     } else if (step === 1) {
+      storage.setUser(name.trim());
+      setStep(2);
+    } else if (step === 2) {
       if (!isConfirming) {
         setIsConfirming(true);
       } else {
@@ -79,12 +86,12 @@ const Onboarding = ({ lang, onComplete }: OnboardingProps) => {
           return;
         }
         storage.setPin(pin.join(''));
-        setStep(2);
+        setStep(3);
       }
-    } else if (step === 2) {
-      storage.setProfil({ nom: company, logo: '', devise: currency });
-      setStep(3);
     } else if (step === 3) {
+      storage.setProfil({ nom: company, logo: '', devise: currency });
+      setStep(4);
+    } else if (step === 4) {
       storage.setReminderDays(reminderDays);
       storage.setLang(selectedLang);
       storage.setAutosave(autosave);
@@ -123,7 +130,7 @@ const Onboarding = ({ lang, onComplete }: OnboardingProps) => {
         <div className="glass-card p-8">
           {/* Progress */}
           <div className="flex gap-2 mb-8 justify-center">
-            {[0, 1, 2, 3].map(i => (
+            {Array.from({ length: totalSteps }).map((_, i) => (
               <div
                 key={i}
                 className={`h-1.5 rounded-full transition-all duration-500 ${
@@ -142,7 +149,46 @@ const Onboarding = ({ lang, onComplete }: OnboardingProps) => {
               exit="exit"
               transition={{ duration: 0.3, ease: 'easeInOut' }}
             >
+              {/* Step 0: Welcome */}
               {step === 0 && (
+                <div className="space-y-6 text-center">
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.2, type: 'spring' }}
+                    className="w-20 h-20 rounded-2xl bg-primary/15 flex items-center justify-center mx-auto"
+                  >
+                    <Anchor size={40} className="text-primary" />
+                  </motion.div>
+                  <h2 className="text-2xl font-clash font-bold uppercase tracking-wider">
+                    {t('welcomeTitle', lang)}
+                  </h2>
+                  <p className="text-muted-foreground font-satoshi text-base leading-relaxed">
+                    {t('welcomeDesc', lang)}
+                  </p>
+                  <div className="flex justify-center gap-6 pt-2">
+                    {[
+                      { icon: Ship, label: lang === 'fr' ? 'Calculer' : 'Calculate' },
+                      { icon: Compass, label: lang === 'fr' ? 'Deviser' : 'Quote' },
+                    ].map((item, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.4 + i * 0.15 }}
+                        className="flex flex-col items-center gap-1"
+                      >
+                        <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                          <item.icon size={18} className="text-primary" />
+                        </div>
+                        <span className="text-xs text-muted-foreground font-satoshi">{item.label}</span>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {step === 1 && (
                 <div className="space-y-6">
                   <h2 className="text-2xl font-clash font-bold text-center uppercase tracking-wider">
                     {t('onboardingStep1Title', lang)}
@@ -159,7 +205,7 @@ const Onboarding = ({ lang, onComplete }: OnboardingProps) => {
                 </div>
               )}
 
-              {step === 1 && (
+              {step === 2 && (
                 <div className="space-y-6">
                   <h2 className="text-2xl font-clash font-bold text-center uppercase tracking-wider">
                     {isConfirming ? t('onboardingStep2Confirm', lang) : t('onboardingStep2Title', lang)}
@@ -171,7 +217,7 @@ const Onboarding = ({ lang, onComplete }: OnboardingProps) => {
                 </div>
               )}
 
-              {step === 2 && (
+              {step === 3 && (
                 <div className="space-y-6">
                   <h2 className="text-2xl font-clash font-bold text-center uppercase tracking-wider">
                     {t('onboardingStep3Title', lang)}
@@ -208,7 +254,7 @@ const Onboarding = ({ lang, onComplete }: OnboardingProps) => {
                 </div>
               )}
 
-              {step === 3 && (
+              {step === 4 && (
                 <div className="space-y-6">
                   <h2 className="text-2xl font-clash font-bold text-center uppercase tracking-wider">
                     {t('onboardingStep4Title', lang)}
@@ -273,7 +319,7 @@ const Onboarding = ({ lang, onComplete }: OnboardingProps) => {
             disabled={!canContinue()}
             className="w-full mt-8 py-3 rounded-xl font-clash font-bold uppercase tracking-wider bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-40 transition-all"
           >
-            {step === 3 ? t('finish', lang) : t('continue', lang)}
+            {step === 0 ? t('welcomeButton', lang) : step === 4 ? t('finish', lang) : t('continue', lang)}
           </button>
         </div>
       </div>
