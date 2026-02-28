@@ -415,8 +415,7 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
 
   // PREVIEW VIEW
   if (view === 'preview') {
-    const moovPhone = payment.moovPhone || '+228 70 55 43 45';
-    const yasPhone = payment.yasPhone || '+228 98 58 70 76';
+    const methods = payment.methods || [];
 
     return (
       <div className="max-w-4xl mx-auto px-4 pt-24 md:pt-20 pb-8">
@@ -531,19 +530,32 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
           </div>
 
           {/* Payment Info */}
-          <div className="border-t-2 border-border pt-4">
-            <p className="font-clash font-bold uppercase tracking-wider text-sm mb-3">{t('paymentInfo', lang)} :</p>
-            <div className="flex flex-wrap items-center gap-6">
-              <div className="flex items-center gap-3">
-                <img src="/images/yas-mixx.jpg" alt="Yas Mixx" className="w-10 h-10 rounded-lg object-cover" />
-                <span className="font-satoshi font-bold text-sm">{yasPhone}</span>
+          {methods.length > 0 && (
+            <div className="border-t-2 border-primary/20 pt-6 mt-2">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-0.5 bg-primary rounded-full" />
+                <p className="font-clash font-bold uppercase tracking-wider text-sm text-primary">{t('paymentInfo', lang)}</p>
+                <div className="flex-1 h-0.5 bg-primary/20 rounded-full" />
               </div>
-              <div className="flex items-center gap-3">
-                <img src="/images/moov-africa.jpg" alt="Moov Africa" className="w-10 h-10 rounded-lg object-cover" />
-                <span className="font-satoshi font-bold text-sm">{moovPhone}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {methods.map((m) => (
+                  <div key={m.id} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
+                    {m.logo ? (
+                      <img src={m.logo} alt={m.name} className="w-10 h-10 rounded-xl object-cover shadow-sm border border-border" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground font-clash">
+                        {m.name?.slice(0, 2).toUpperCase() || '?'}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-clash font-bold text-xs uppercase tracking-wider text-muted-foreground truncate">{m.name}</p>
+                      <p className="font-satoshi font-bold text-sm">{m.phone}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     );

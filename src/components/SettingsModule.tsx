@@ -1,9 +1,9 @@
 import { useState, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { t } from '@/lib/i18n';
-import { storage } from '@/lib/storage';
+import { storage, PaymentMethod } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
-import { User, Building, Shield, Download, Upload, ToggleLeft, ToggleRight, AlertTriangle, Save, Image, Phone } from 'lucide-react';
+import { User, Shield, Download, Upload, ToggleLeft, ToggleRight, AlertTriangle, Save, Image, Wallet, Plus, Trash2, X, GripVertical } from 'lucide-react';
 
 interface SettingsModuleProps {
   lang: 'fr' | 'en';
@@ -12,35 +12,34 @@ interface SettingsModuleProps {
 }
 
 const CURRENCIES = ['XOF', 'EUR', 'USD', 'GBP', 'CAD'];
+const genId = () => Math.random().toString(36).slice(2, 10);
 
 const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps) => {
   const { toast } = useToast();
   const profil = storage.getProfil();
   const paymentData = storage.getPayment();
-  
+
   const [firstName, setFirstName] = useState(storage.getUser() || '');
   const [companyName, setCompanyName] = useState(profil.nom || '');
   const [logo, setLogo] = useState(profil.logo || '');
   const [devise, setDevise] = useState(profil.devise || 'XOF');
   const [reminderDays, setReminderDays] = useState(storage.getReminderDays());
   const [autosave, setAutosave] = useState(storage.getAutosave());
-  const [moovPhone, setMoovPhone] = useState(paymentData.moovPhone || '+228 70 55 43 45');
-  const [yasPhone, setYasPhone] = useState(paymentData.yasPhone || '+228 98 58 70 76');
-  
-  // PIN change
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(paymentData.methods || []);
+
   const [oldPin, setOldPin] = useState('');
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
-  
   const [resetStep, setResetStep] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
+  const payLogoRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   const saveProfile = () => {
     storage.setUser(firstName);
     storage.setProfil({ nom: companyName, logo, devise });
     storage.setReminderDays(reminderDays);
-    storage.setPayment({ moovPhone, yasPhone });
+    storage.setPayment({ moovPhone: '', yasPhone: '', methods: paymentMethods });
     onProfileUpdate(firstName);
     toast({ title: t('saved', lang) });
   };
@@ -61,41 +60,24 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
 
   const exportJSON = () => {
     const data = {
-      user: storage.getUser(),
-      profil: storage.getProfil(),
-      orders: storage.getOrders(),
-      devis: storage.getDevis(),
-      lang: storage.getLang(),
-      theme: storage.getTheme(),
-      reminderDays: storage.getReminderDays(),
-      autosave: storage.getAutosave(),
+      user: storage.getUser(), profil: storage.getProfil(), orders: storage.getOrders(),
+      devis: storage.getDevis(), lang: storage.getLang(), theme: storage.getTheme(),
+      reminderDays: storage.getReminderDays(), autosave: storage.getAutosave(),
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
+    const a = document.createElement('a'); a.href = url;
     a.download = `mrg-suite-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    a.click(); URL.revokeObjectURL(url);
   };
 
   const exportExcel = async () => {
     const XLSX = await import('xlsx');
     const orders = storage.getOrders();
     const ws = XLSX.utils.json_to_sheet(orders.map(o => ({
-      Client: o.client,
-      Téléphone: o.phone,
-      Transport: o.transport,
-      'Prix réel': o.realPrice,
-      'Prix client': o.clientPrice,
-      Bénéfice: o.profit,
-      'Date commande': o.dateOrder,
-      'Date arrivée': o.dateArrival,
-      'Date récup.': o.datePickup,
-      'Date livraison': o.dateDelivery,
-      Statut: o.status,
-      Note: o.rating,
-      Avis: o.review,
+      Client: o.client, Téléphone: o.phone, Transport: o.transport,
+      'Prix réel': o.realPrice, 'Prix client': o.clientPrice, Bénéfice: o.profit,
+      'Date commande': o.dateOrder, Statut: o.status, Note: o.rating, Avis: o.review,
     })));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Commandes');
@@ -133,12 +115,8 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
   };
 
   const handleReset = () => {
-    if (resetStep === 0) {
-      setResetStep(1);
-    } else {
-      storage.resetAll();
-      onReset();
-    }
+    if (resetStep === 0) { setResetStep(1); }
+    else { storage.resetAll(); onReset(); }
   };
 
   const toggleAutosave = () => {
@@ -147,17 +125,43 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
     storage.setAutosave(next);
   };
 
-  const inputClass = "w-full px-4 py-3 rounded-xl bg-secondary border border-border focus:border-primary focus:outline-none font-satoshi";
+  // Payment methods management
+  const addPaymentMethod = () => {
+    setPaymentMethods(prev => [...prev, { id: genId(), name: '', phone: '', logo: '' }]);
+  };
+
+  const updatePaymentMethod = (id: string, patch: Partial<PaymentMethod>) => {
+    setPaymentMethods(prev => prev.map(m => m.id === id ? { ...m, ...patch } : m));
+  };
+
+  const removePaymentMethod = (id: string) => {
+    setPaymentMethods(prev => prev.filter(m => m.id !== id));
+  };
+
+  const handlePayLogoUpload = (methodId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => updatePaymentMethod(methodId, { logo: ev.target?.result as string });
+    reader.readAsDataURL(file);
+  };
+
+  const inputClass = "w-full px-4 py-3 rounded-xl bg-secondary border border-border focus:border-primary focus:outline-none font-satoshi transition-colors duration-200";
+
+  const sectionVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.08, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] } }),
+  };
 
   return (
     <div className="max-w-3xl mx-auto px-4 pt-24 md:pt-20 pb-8">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <h1 className="text-3xl font-clash font-bold uppercase tracking-wider mb-6">
           {t('settingsTitle', lang)}
         </h1>
 
         {/* Profile Section */}
-        <div className="glass-card p-6 mb-6">
+        <motion.div custom={0} variants={sectionVariants} initial="hidden" animate="visible" className="glass-card p-6 mb-6">
           <h2 className="font-clash font-bold uppercase tracking-wider text-lg mb-4 flex items-center gap-2">
             <User size={20} className="text-primary" /> {t('profileSection', lang)}
           </h2>
@@ -173,10 +177,44 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
             <div>
               <label className="block text-sm font-medium text-muted-foreground mb-1 font-satoshi">{t('companyLogo', lang)}</label>
               <div className="flex items-center gap-4">
-                {logo && <img src={logo} alt="Logo" className="w-12 h-12 rounded-lg object-cover" />}
-                <button onClick={() => logoInputRef.current?.click()} className="px-4 py-2 rounded-xl bg-secondary border border-border hover:border-primary transition-colors font-satoshi text-sm flex items-center gap-2">
-                  <Image size={16} /> {t('uploadLogo', lang)}
-                </button>
+                <AnimatePresence mode="wait">
+                  {logo ? (
+                    <motion.div
+                      key="logo"
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.8, opacity: 0 }}
+                      className="relative group"
+                    >
+                      <img src={logo} alt="Logo" className="w-14 h-14 rounded-xl object-cover border-2 border-primary/30 shadow-lg" />
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => setLogo('')}
+                        className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                      >
+                        <X size={12} />
+                      </motion.button>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="no-logo"
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="w-14 h-14 rounded-xl bg-muted border-2 border-dashed border-border flex items-center justify-center"
+                    >
+                      <Image size={20} className="text-muted-foreground" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => logoInputRef.current?.click()}
+                  className="px-4 py-2 rounded-xl bg-secondary border border-border hover:border-primary transition-all duration-200 font-satoshi text-sm flex items-center gap-2"
+                >
+                  <Image size={16} /> {logo ? (lang === 'fr' ? 'Changer' : 'Change') : t('uploadLogo', lang)}
+                </motion.button>
                 <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
               </div>
             </div>
@@ -192,35 +230,124 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
                 <input type="number" value={reminderDays} onChange={e => setReminderDays(parseInt(e.target.value) || 3)} className={inputClass} />
               </div>
             </div>
-            <button onClick={saveProfile} className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-clash font-bold uppercase tracking-wider hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
-              <Save size={18} /> {t('saved', lang)}
-            </button>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Payment Info */}
-        <div className="glass-card p-6 mb-6">
-          <h2 className="font-clash font-bold uppercase tracking-wider text-lg mb-4 flex items-center gap-2">
-            <Phone size={20} className="text-bleu-mer" /> {t('paymentInfo', lang)}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-1 font-satoshi flex items-center gap-2">
-                <img src="/images/moov-africa.jpg" alt="Moov" className="w-6 h-6 rounded" /> {t('moovPhone', lang)}
-              </label>
-              <input value={moovPhone} onChange={e => setMoovPhone(e.target.value)} className={inputClass} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-1 font-satoshi flex items-center gap-2">
-                <img src="/images/yas-mixx.jpg" alt="Yas" className="w-6 h-6 rounded" /> {t('yasPhone', lang)}
-              </label>
-              <input value={yasPhone} onChange={e => setYasPhone(e.target.value)} className={inputClass} />
-            </div>
+        {/* Payment Methods */}
+        <motion.div custom={1} variants={sectionVariants} initial="hidden" animate="visible" className="glass-card p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-clash font-bold uppercase tracking-wider text-lg flex items-center gap-2">
+              <Wallet size={20} className="text-bleu-mer" /> {t('paymentInfo', lang)}
+            </h2>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={addPaymentMethod}
+              className="px-3 py-1.5 rounded-lg bg-primary/15 text-primary font-clash font-bold uppercase text-xs flex items-center gap-1.5 hover:bg-primary/25 transition-colors"
+            >
+              <Plus size={14} /> {lang === 'fr' ? 'Ajouter' : 'Add'}
+            </motion.button>
           </div>
-        </div>
+
+          <AnimatePresence>
+            {paymentMethods.length === 0 && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="text-muted-foreground font-satoshi text-sm text-center py-6"
+              >
+                {lang === 'fr' ? 'Aucun moyen de paiement. Cliquez sur Ajouter.' : 'No payment methods. Click Add.'}
+              </motion.p>
+            )}
+          </AnimatePresence>
+
+          <div className="space-y-3">
+            <AnimatePresence>
+              {paymentMethods.map((method, i) => (
+                <motion.div
+                  key={method.id}
+                  initial={{ opacity: 0, x: -20, height: 0 }}
+                  animate={{ opacity: 1, x: 0, height: 'auto' }}
+                  exit={{ opacity: 0, x: 20, height: 0 }}
+                  transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  className="p-4 rounded-xl bg-secondary/50 border border-border hover:border-primary/30 transition-colors duration-200"
+                >
+                  <div className="flex items-start gap-3">
+                    {/* Logo */}
+                    <div className="flex-shrink-0">
+                      <input
+                        ref={el => { payLogoRefs.current[method.id] = el; }}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={e => handlePayLogoUpload(method.id, e)}
+                      />
+                      {method.logo ? (
+                        <div className="relative group cursor-pointer" onClick={() => payLogoRefs.current[method.id]?.click()}>
+                          <img src={method.logo} alt="" className="w-12 h-12 rounded-xl object-cover border border-border shadow-sm" />
+                          <div className="absolute inset-0 rounded-xl bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <Image size={16} className="text-foreground" />
+                          </div>
+                        </div>
+                      ) : (
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => payLogoRefs.current[method.id]?.click()}
+                          className="w-12 h-12 rounded-xl bg-muted border-2 border-dashed border-border flex items-center justify-center hover:border-primary transition-colors"
+                        >
+                          <Image size={16} className="text-muted-foreground" />
+                        </motion.button>
+                      )}
+                    </div>
+
+                    {/* Fields */}
+                    <div className="flex-1 grid grid-cols-2 gap-2">
+                      <input
+                        value={method.name}
+                        onChange={e => updatePaymentMethod(method.id, { name: e.target.value })}
+                        placeholder={lang === 'fr' ? 'Nom (ex: Orange Money)' : 'Name (e.g. Orange Money)'}
+                        className="px-3 py-2 rounded-lg bg-background border border-border focus:border-primary focus:outline-none font-satoshi text-sm transition-colors"
+                      />
+                      <input
+                        value={method.phone}
+                        onChange={e => updatePaymentMethod(method.id, { phone: e.target.value })}
+                        placeholder={lang === 'fr' ? 'Numéro' : 'Number'}
+                        className="px-3 py-2 rounded-lg bg-background border border-border focus:border-primary focus:outline-none font-satoshi text-sm transition-colors"
+                      />
+                    </div>
+
+                    {/* Delete */}
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => removePaymentMethod(method.id)}
+                      className="flex-shrink-0 w-8 h-8 rounded-lg bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20 transition-colors"
+                    >
+                      <Trash2 size={14} />
+                    </motion.button>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+
+        {/* Save button */}
+        <motion.div custom={2} variants={sectionVariants} initial="hidden" animate="visible" className="mb-6">
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={saveProfile}
+            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-primary to-bleu-mer text-primary-foreground font-clash font-bold uppercase tracking-wider hover:opacity-90 transition-opacity flex items-center justify-center gap-2 shadow-lg"
+          >
+            <Save size={18} /> {t('saved', lang)}
+          </motion.button>
+        </motion.div>
 
         {/* Change PIN */}
-        <div className="glass-card p-6 mb-6">
+        <motion.div custom={3} variants={sectionVariants} initial="hidden" animate="visible" className="glass-card p-6 mb-6">
           <h2 className="font-clash font-bold uppercase tracking-wider text-lg mb-4 flex items-center gap-2">
             <Shield size={20} className="text-or" /> {t('changePin', lang)}
           </h2>
@@ -238,70 +365,77 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
               <input type="password" maxLength={4} value={confirmPin} onChange={e => setConfirmPin(e.target.value)} className={inputClass} />
             </div>
           </div>
-          <button onClick={handlePinChange} className="mt-4 px-6 py-2 rounded-xl bg-or text-accent-foreground font-clash font-bold uppercase text-sm tracking-wider hover:opacity-90 transition-opacity">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handlePinChange}
+            className="mt-4 px-6 py-2 rounded-xl bg-or text-accent-foreground font-clash font-bold uppercase text-sm tracking-wider hover:opacity-90 transition-opacity"
+          >
             {t('updatePin', lang)}
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
         {/* Export / Import */}
-        <div className="glass-card p-6 mb-6">
+        <motion.div custom={4} variants={sectionVariants} initial="hidden" animate="visible" className="glass-card p-6 mb-6">
           <h2 className="font-clash font-bold uppercase tracking-wider text-lg mb-4 flex items-center gap-2">
             <Download size={20} className="text-bleu-mer" /> {t('exportData', lang)}
           </h2>
           <div className="flex flex-wrap gap-3">
-            <button onClick={exportJSON} className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-clash font-bold uppercase text-sm tracking-wider hover:opacity-90 transition-opacity">
+            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={exportJSON} className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-clash font-bold uppercase text-sm tracking-wider hover:opacity-90 transition-opacity">
               {t('exportJSON', lang)}
-            </button>
-            <button onClick={exportExcel} className="px-6 py-3 rounded-xl bg-bleu-mer text-primary-foreground font-clash font-bold uppercase text-sm tracking-wider hover:opacity-90 transition-opacity">
+            </motion.button>
+            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={exportExcel} className="px-6 py-3 rounded-xl bg-bleu-mer text-primary-foreground font-clash font-bold uppercase text-sm tracking-wider hover:opacity-90 transition-opacity">
               {t('exportExcel', lang)}
-            </button>
+            </motion.button>
           </div>
 
           <h2 className="font-clash font-bold uppercase tracking-wider text-lg mt-6 mb-4 flex items-center gap-2">
             <Upload size={20} className="text-primary" /> {t('importData', lang)}
           </h2>
-          <button onClick={() => fileInputRef.current?.click()} className="px-6 py-3 rounded-xl bg-secondary border border-border hover:border-primary font-clash font-bold uppercase text-sm tracking-wider transition-colors">
+          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => fileInputRef.current?.click()} className="px-6 py-3 rounded-xl bg-secondary border border-border hover:border-primary font-clash font-bold uppercase text-sm tracking-wider transition-colors">
             {t('importJSON', lang)}
-          </button>
+          </motion.button>
           <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={importJSON} />
-        </div>
+        </motion.div>
 
         {/* Auto-save */}
-        <div className="glass-card p-6 mb-6">
+        <motion.div custom={5} variants={sectionVariants} initial="hidden" animate="visible" className="glass-card p-6 mb-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-clash font-bold uppercase tracking-wider text-lg">{t('autoSave', lang)}</h2>
               <p className="text-sm text-muted-foreground font-satoshi">{t('autoSaveDesc', lang)}</p>
             </div>
-            <button onClick={toggleAutosave} className="text-primary">
+            <motion.button whileTap={{ scale: 0.9 }} onClick={toggleAutosave} className="text-primary">
               {autosave ? <ToggleRight size={40} /> : <ToggleLeft size={40} className="text-muted-foreground" />}
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Danger Zone */}
-        <div className="glass-card p-6 border-2 border-destructive/30">
+        <motion.div custom={6} variants={sectionVariants} initial="hidden" animate="visible" className="glass-card p-6 border-2 border-destructive/30">
           <h2 className="font-clash font-bold uppercase tracking-wider text-lg mb-4 flex items-center gap-2 text-destructive">
             <AlertTriangle size={20} /> {t('dangerZone', lang)}
           </h2>
-          {resetStep === 0 ? (
-            <button onClick={handleReset} className="px-6 py-3 rounded-xl bg-destructive text-destructive-foreground font-clash font-bold uppercase text-sm tracking-wider hover:opacity-90 transition-opacity">
-              {t('resetAll', lang)}
-            </button>
-          ) : (
-            <div className="space-y-3">
-              <p className="text-destructive font-satoshi font-medium">{t('resetConfirm', lang)}</p>
-              <div className="flex gap-3">
-                <button onClick={handleReset} className="px-6 py-3 rounded-xl bg-destructive text-destructive-foreground font-clash font-bold uppercase text-sm tracking-wider hover:opacity-90 transition-opacity">
-                  {t('resetConfirm2', lang)}
-                </button>
-                <button onClick={() => setResetStep(0)} className="px-6 py-3 rounded-xl bg-secondary font-clash font-bold uppercase text-sm tracking-wider">
-                  {lang === 'fr' ? 'Annuler' : 'Cancel'}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+          <AnimatePresence mode="wait">
+            {resetStep === 0 ? (
+              <motion.button key="step0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleReset} className="px-6 py-3 rounded-xl bg-destructive text-destructive-foreground font-clash font-bold uppercase text-sm tracking-wider hover:opacity-90 transition-opacity">
+                {t('resetAll', lang)}
+              </motion.button>
+            ) : (
+              <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-3">
+                <p className="text-destructive font-satoshi font-medium">{t('resetConfirm', lang)}</p>
+                <div className="flex gap-3">
+                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleReset} className="px-6 py-3 rounded-xl bg-destructive text-destructive-foreground font-clash font-bold uppercase text-sm tracking-wider hover:opacity-90 transition-opacity">
+                    {t('resetConfirm2', lang)}
+                  </motion.button>
+                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => setResetStep(0)} className="px-6 py-3 rounded-xl bg-secondary font-clash font-bold uppercase text-sm tracking-wider">
+                    {lang === 'fr' ? 'Annuler' : 'Cancel'}
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       </motion.div>
     </div>
   );
