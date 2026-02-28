@@ -57,9 +57,17 @@ export interface MrgDevis {
   createdAt: string;
 }
 
+export interface PaymentMethod {
+  id: string;
+  name: string;
+  phone: string;
+  logo: string;
+}
+
 export interface MrgPaymentInfo {
   moovPhone: string;
   yasPhone: string;
+  methods: PaymentMethod[];
 }
 
 const KEYS = {
@@ -118,8 +126,24 @@ export const storage = {
   setTutorialSeen: () => localStorage.setItem(KEYS.tutorialSeen, 'true'),
 
   getPayment: (): MrgPaymentInfo => {
-    try { return JSON.parse(localStorage.getItem(KEYS.payment) || '{}'); }
-    catch { return { moovPhone: '+228 70 55 43 45', yasPhone: '+228 98 58 70 76' }; }
+    try {
+      const raw = JSON.parse(localStorage.getItem(KEYS.payment) || '{}');
+      // Migration: if old format without methods array, convert
+      if (!raw.methods) {
+        const methods: PaymentMethod[] = [];
+        if (raw.moovPhone) methods.push({ id: 'moov', name: 'Moov Africa', phone: raw.moovPhone, logo: '/images/moov-africa.jpg' });
+        if (raw.yasPhone) methods.push({ id: 'yas', name: 'Yas/Mixx', phone: raw.yasPhone, logo: '/images/yas-mixx.jpg' });
+        if (methods.length === 0) {
+          methods.push(
+            { id: 'moov', name: 'Moov Africa', phone: '+228 70 55 43 45', logo: '/images/moov-africa.jpg' },
+            { id: 'yas', name: 'Yas/Mixx', phone: '+228 98 58 70 76', logo: '/images/yas-mixx.jpg' },
+          );
+        }
+        return { moovPhone: '', yasPhone: '', methods };
+      }
+      return raw;
+    }
+    catch { return { moovPhone: '', yasPhone: '', methods: [] }; }
   },
   setPayment: (p: MrgPaymentInfo) => localStorage.setItem(KEYS.payment, JSON.stringify(p)),
 
