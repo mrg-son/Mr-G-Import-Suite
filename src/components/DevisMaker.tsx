@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { t } from '@/lib/i18n';
 import { storage, MrgDevis, DevisLigne, MrgOrder } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Trash2, FileText, ArrowLeft, Download, Eye, Image, RefreshCw, X, Ship, Plane, Calculator } from 'lucide-react';
+import { Plus, Trash2, FileText, ArrowLeft, Download, Eye, Image, RefreshCw, X, Ship, Plane, Calculator, ZoomIn, Crop } from 'lucide-react';
 
 interface DevisMakerProps {
   lang: 'fr' | 'en';
@@ -115,6 +115,84 @@ const MiniFreightCalc = ({ type, lang, onApply, onClose }: { type: 'boat' | 'pla
   );
 };
 
+// Image zoom/crop dialog
+const ImageDialog = ({ src, lang: dlang, onClose, onCrop }: { src: string; lang: 'fr' | 'en'; onClose: () => void; onCrop: (cropped: string) => void }) => {
+  const [scale, setScale] = useState(1);
+  const [offsetX, setOffsetX] = useState(0);
+  const [offsetY, setOffsetY] = useState(0);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  const applyCrop = () => {
+    const canvas = canvasRef.current;
+    const img = imgRef.current;
+    if (!canvas || !img) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const size = 200;
+    canvas.width = size;
+    canvas.height = size;
+    const sScale = scale;
+    const sw = size / sScale;
+    const sh = size / sScale;
+    const sx = (img.naturalWidth / 2) - (sw / 2) - (offsetX * img.naturalWidth / size);
+    const sy = (img.naturalHeight / 2) - (sh / 2) - (offsetY * img.naturalHeight / size);
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, size, size);
+    onCrop(canvas.toDataURL('image/jpeg', 0.85));
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9 }}
+        animate={{ scale: 1 }}
+        className="glass-card p-6 max-w-md w-full space-y-4"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <h3 className="font-clash font-bold uppercase tracking-wider text-sm">Image</h3>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X size={16} /></button>
+        </div>
+        <div className="relative overflow-hidden rounded-xl bg-secondary aspect-square flex items-center justify-center">
+          <img
+            ref={imgRef}
+            src={src}
+            alt=""
+            className="max-w-full max-h-full object-contain transition-transform"
+            style={{ transform: `scale(${scale}) translate(${offsetX}px, ${offsetY}px)` }}
+            crossOrigin="anonymous"
+          />
+        </div>
+        <canvas ref={canvasRef} className="hidden" />
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <ZoomIn size={14} className="text-muted-foreground flex-shrink-0" />
+            <input type="range" min="0.5" max="3" step="0.1" value={scale} onChange={e => setScale(parseFloat(e.target.value))} className="w-full accent-primary" />
+            <span className="text-xs font-satoshi text-muted-foreground w-10">{Math.round(scale * 100)}%</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-muted-foreground w-4">X</span>
+            <input type="range" min="-50" max="50" step="1" value={offsetX} onChange={e => setOffsetX(parseInt(e.target.value))} className="w-full accent-primary" />
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-muted-foreground w-4">Y</span>
+            <input type="range" min="-50" max="50" step="1" value={offsetY} onChange={e => setOffsetY(parseInt(e.target.value))} className="w-full accent-primary" />
+          </div>
+        </div>
+        <button onClick={applyCrop} className="w-full py-2 rounded-xl bg-primary text-primary-foreground font-clash font-bold uppercase text-xs hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+          <Crop size={14} /> {dlang === 'fr' ? 'Rogner et appliquer' : 'Crop & apply'}
+        </button>
+      </motion.div>
+    </motion.div>
+  );
+};
+
 const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
   const { toast } = useToast();
   const profil = storage.getProfil();
@@ -123,6 +201,7 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
   const [allDevis, setAllDevis] = useState<MrgDevis[]>(storage.getDevis());
   const previewRef = useRef<HTMLDivElement>(null);
   const [miniCalc, setMiniCalc] = useState<{ lineId: string; type: 'boat' | 'plane' } | null>(null);
+  const [zoomImage, setZoomImage] = useState<{ lineId: string; src: string } | null>(null);
 
   const [currentDevis, setCurrentDevis] = useState<MrgDevis>({
     id: genId(),
@@ -378,10 +457,41 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
           <table className="w-full text-sm mb-6">
             <thead>
               <tr className="bg-card">
-                <th className="p-2 text-left font-clash uppercase text-xs">#</th>
+                <th className="p-2 text-left font-clash uppercase text-xs">N°</th>
+                <th className="p-2 text-center font-clash uppercase text-xs">IMAGES</th>
                 <th className="p-2 text-left font-clash uppercase text-xs">{t('description', lang)}</th>
                 <th className="p-2 text-right font-clash uppercase text-xs">{t('quantity', lang)}</th>
-                <th className="p-2 text-right font-clash uppercase text-xs">{t('unitPrice', lang)}</th>
+                <th className="p-2 text-right font-clash uppercase text-xs">{t('unitPrice', lang)} ({currentDevis.devise})</th>
+                <th className="p-2 text-right font-clash uppercase text-xs">{t('lineTotal', lang)} ({currentDevis.devise})</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentDevis.lignes.map((l, i) => (
+                <tr key={l.id} className="border-b border-border">
+                  <td className="p-2 font-satoshi">{i + 1}</td>
+                  <td className="p-2 text-center">
+                    {l.image ? (
+                      <img src={l.image} alt="" className="w-14 h-14 rounded-lg object-cover inline-block" />
+                    ) : (
+                      <div className="w-14 h-14 rounded-lg bg-muted inline-flex items-center justify-center">
+                        <Image size={16} className="text-muted-foreground" />
+                      </div>
+                    )}
+                  </td>
+                  <td className="p-2 font-satoshi">{l.description}</td>
+                  <td className="p-2 text-right font-satoshi">{l.quantite}</td>
+                  <td className="p-2 text-right font-satoshi">{formatNum(l.prixUnitaire, currentDevis.devise)}</td>
+                  <td className="p-2 text-right font-satoshi font-bold">{formatNum(l.prixTotal, currentDevis.devise)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Shipping details table */}
+          <table className="w-full text-sm mb-6">
+            <thead>
+              <tr className="bg-card">
+                <th className="p-2 text-left font-clash uppercase text-xs">N°</th>
                 <th className="p-2 text-right font-clash uppercase text-xs">{t('shippingFees', lang)}</th>
                 <th className="p-2 text-right font-clash uppercase text-xs">{t('boatRecovery', lang)}</th>
                 <th className="p-2 text-right font-clash uppercase text-xs">{t('planeRecovery', lang)}</th>
@@ -392,9 +502,6 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
               {currentDevis.lignes.map((l, i) => (
                 <tr key={l.id} className="border-b border-border">
                   <td className="p-2 font-satoshi">{i + 1}</td>
-                  <td className="p-2 font-satoshi">{l.description}</td>
-                  <td className="p-2 text-right font-satoshi">{l.quantite}</td>
-                  <td className="p-2 text-right font-satoshi">{formatNum(l.prixUnitaire, currentDevis.devise)}</td>
                   <td className="p-2 text-right font-satoshi">{formatNum(l.fraisExpedition, currentDevis.devise)}</td>
                   <td className="p-2 text-right font-satoshi">{formatNum(l.fraisRecupBateau, currentDevis.devise)}</td>
                   <td className="p-2 text-right font-satoshi">{formatNum(l.fraisRecupAvion, currentDevis.devise)}</td>
@@ -587,11 +694,23 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
                 </div>
                 <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
                   <div className="flex items-center gap-2">
-                    <label className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
-                      <Image size={16} />
+                    <label className="cursor-pointer px-2 py-1 rounded-lg bg-secondary hover:bg-muted text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 text-xs font-satoshi">
+                      <Image size={14} />
+                      {line.image ? (lang === 'fr' ? 'Changer' : 'Change') : (lang === 'fr' ? 'Ajouter image' : 'Add image')}
                       <input type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload(line.id, e)} />
                     </label>
-                    {line.image && <img src={line.image} alt="" className="w-8 h-8 rounded object-cover" />}
+                    {line.image && (
+                      <div className="flex items-center gap-1">
+                        <img src={line.image} alt="" className="w-10 h-10 rounded-lg object-cover border border-border" />
+                        <button
+                          onClick={() => setZoomImage({ lineId: line.id, src: line.image })}
+                          className="p-1 rounded-lg bg-secondary hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                          title={lang === 'fr' ? 'Agrandir / Rogner' : 'Zoom / Crop'}
+                        >
+                          <ZoomIn size={14} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <p className="font-satoshi font-bold text-primary">{t('lineTotal', lang)}: {formatNum(line.prixTotal, currentDevis.devise)}</p>
                 </div>
@@ -622,6 +741,21 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
           </div>
         </div>
       </motion.div>
+
+      {/* Image zoom/crop dialog */}
+      <AnimatePresence>
+        {zoomImage && (
+          <ImageDialog
+            src={zoomImage.src}
+            lang={lang}
+            onClose={() => setZoomImage(null)}
+            onCrop={(cropped) => {
+              updateLine(zoomImage.lineId, { image: cropped });
+              setZoomImage(null);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
