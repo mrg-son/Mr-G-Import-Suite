@@ -1,9 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { t } from '@/lib/i18n';
 import { storage, PaymentMethod } from '@/lib/storage';
+import { addExport, getAllExports, deleteExport, clearExports, type ExportRecord } from '@/lib/db';
 import { useToast } from '@/hooks/use-toast';
-import { User, Shield, Download, Upload, ToggleLeft, ToggleRight, AlertTriangle, Save, Image, Wallet, Plus, Trash2, X, GripVertical } from 'lucide-react';
+import { User, Shield, Download, Upload, ToggleLeft, ToggleRight, AlertTriangle, Save, Image, Wallet, Plus, Trash2, X, Clock, FileJson, FileSpreadsheet } from 'lucide-react';
 
 interface SettingsModuleProps {
   lang: 'fr' | 'en';
