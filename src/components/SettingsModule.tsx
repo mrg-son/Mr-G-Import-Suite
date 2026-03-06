@@ -1,9 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { t } from '@/lib/i18n';
 import { storage, PaymentMethod } from '@/lib/storage';
+import { addExport, getAllExports, deleteExport, clearExports, type ExportRecord } from '@/lib/db';
 import { useToast } from '@/hooks/use-toast';
-import { User, Shield, Download, Upload, ToggleLeft, ToggleRight, AlertTriangle, Save, Image, Wallet, Plus, Trash2, X, GripVertical } from 'lucide-react';
+import { User, Shield, Download, Upload, ToggleLeft, ToggleRight, AlertTriangle, Save, Image, Wallet, Plus, Trash2, X, Clock, FileJson, FileSpreadsheet } from 'lucide-react';
 
 interface SettingsModuleProps {
   lang: 'fr' | 'en';
@@ -31,9 +32,19 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [resetStep, setResetStep] = useState(0);
+  const [exportHistory, setExportHistory] = useState<ExportRecord[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const payLogoRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+
+
+  useEffect(() => {
+    getAllExports().then(setExportHistory).catch(() => {});
+  }, []);
+
+  const refreshExportHistory = () => {
+    getAllExports().then(setExportHistory).catch(() => {});
+  };
 
   const saveProfile = () => {
     storage.setUser(firstName);
@@ -58,17 +69,31 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
     toast({ title: t('pinUpdated', lang) });
   };
 
-  const exportJSON = () => {
+  const exportJSON = async () => {
     const data = {
       user: storage.getUser(), profil: storage.getProfil(), orders: storage.getOrders(),
       devis: storage.getDevis(), lang: storage.getLang(), theme: storage.getTheme(),
       reminderDays: storage.getReminderDays(), autosave: storage.getAutosave(),
     };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const jsonStr = JSON.stringify(data, null, 2);
+    const filename = `mrg-suite-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url;
-    a.download = `mrg-suite-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = filename;
     a.click(); URL.revokeObjectURL(url);
+
+    // Save to IndexedDB history
+    await addExport({
+      id: Math.random().toString(36).slice(2, 10),
+      date: new Date().toISOString(),
+      type: 'json',
+      filename,
+      data: jsonStr,
+      size: new Blob([jsonStr]).size,
+    });
+    refreshExportHistory();
+    toast({ title: lang === 'fr' ? 'Export sauvegardé dans l\'historique' : 'Export saved to history' });
   };
 
   const exportExcel = async () => {
@@ -81,7 +106,20 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
     })));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Commandes');
-    XLSX.writeFile(wb, `mrg-suite-orders-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    const filename = `mrg-suite-orders-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    XLSX.writeFile(wb, filename);
+
+    // Save metadata to history (not the binary)
+    const jsonBackup = JSON.stringify({ orders, exportedAt: new Date().toISOString() });
+    await addExport({
+      id: Math.random().toString(36).slice(2, 10),
+      date: new Date().toISOString(),
+      type: 'excel',
+      filename,
+      data: jsonBackup,
+      size: new Blob([jsonBackup]).size,
+    });
+    refreshExportHistory();
   };
 
   const importJSON = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -396,6 +434,79 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
             {t('importJSON', lang)}
           </motion.button>
           <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={importJSON} />
+          <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={importJSON} />
+
+          {/* Export History */}
+          <h2 className="font-clash font-bold uppercase tracking-wider text-lg mt-6 mb-4 flex items-center gap-2">
+            <Clock size={20} className="text-or" /> {lang === 'fr' ? 'Historique des exports' : 'Export History'}
+          </h2>
+          {exportHistory.length === 0 ? (
+            <p className="text-muted-foreground font-satoshi text-sm py-3">
+              {lang === 'fr' ? 'Aucun export sauvegardé.' : 'No saved exports.'}
+            </p>
+          ) : (
+            <>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                <AnimatePresence>
+                  {exportHistory.map((exp) => (
+                    <motion.div
+                      key={exp.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 border border-border"
+                    >
+                      {exp.type === 'json' ? (
+                        <FileJson size={18} className="text-primary flex-shrink-0" />
+                      ) : (
+                        <FileSpreadsheet size={18} className="text-bleu-mer flex-shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-satoshi text-sm font-medium truncate">{exp.filename}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(exp.date).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          {' · '}
+                          {(exp.size / 1024).toFixed(1)} Ko
+                        </p>
+                      </div>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => {
+                          const blob = new Blob([exp.data], { type: exp.type === 'json' ? 'application/json' : 'application/octet-stream' });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a'); a.href = url; a.download = exp.filename; a.click();
+                          URL.revokeObjectURL(url);
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-primary/15 text-primary font-clash font-bold uppercase text-xs hover:bg-primary/25 transition-colors"
+                      >
+                        <Download size={14} />
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={async () => {
+                          await deleteExport(exp.id);
+                          refreshExportHistory();
+                        }}
+                        className="w-7 h-7 rounded-lg bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20 transition-colors"
+                      >
+                        <Trash2 size={12} />
+                      </motion.button>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={async () => { await clearExports(); refreshExportHistory(); }}
+                className="mt-3 px-4 py-2 rounded-lg bg-destructive/10 text-destructive font-clash font-bold uppercase text-xs hover:bg-destructive/20 transition-colors"
+              >
+                {lang === 'fr' ? 'Vider l\'historique' : 'Clear history'}
+              </motion.button>
+            </>
+          )}
         </motion.div>
 
         {/* Auto-save */}
