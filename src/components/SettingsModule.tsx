@@ -434,6 +434,79 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
             {t('importJSON', lang)}
           </motion.button>
           <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={importJSON} />
+          <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={importJSON} />
+
+          {/* Export History */}
+          <h2 className="font-clash font-bold uppercase tracking-wider text-lg mt-6 mb-4 flex items-center gap-2">
+            <Clock size={20} className="text-or" /> {lang === 'fr' ? 'Historique des exports' : 'Export History'}
+          </h2>
+          {exportHistory.length === 0 ? (
+            <p className="text-muted-foreground font-satoshi text-sm py-3">
+              {lang === 'fr' ? 'Aucun export sauvegardé.' : 'No saved exports.'}
+            </p>
+          ) : (
+            <>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                <AnimatePresence>
+                  {exportHistory.map((exp) => (
+                    <motion.div
+                      key={exp.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 border border-border"
+                    >
+                      {exp.type === 'json' ? (
+                        <FileJson size={18} className="text-primary flex-shrink-0" />
+                      ) : (
+                        <FileSpreadsheet size={18} className="text-bleu-mer flex-shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-satoshi text-sm font-medium truncate">{exp.filename}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(exp.date).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          {' · '}
+                          {(exp.size / 1024).toFixed(1)} Ko
+                        </p>
+                      </div>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => {
+                          const blob = new Blob([exp.data], { type: exp.type === 'json' ? 'application/json' : 'application/octet-stream' });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a'); a.href = url; a.download = exp.filename; a.click();
+                          URL.revokeObjectURL(url);
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-primary/15 text-primary font-clash font-bold uppercase text-xs hover:bg-primary/25 transition-colors"
+                      >
+                        <Download size={14} />
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={async () => {
+                          await deleteExport(exp.id);
+                          refreshExportHistory();
+                        }}
+                        className="w-7 h-7 rounded-lg bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20 transition-colors"
+                      >
+                        <Trash2 size={12} />
+                      </motion.button>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={async () => { await clearExports(); refreshExportHistory(); }}
+                className="mt-3 px-4 py-2 rounded-lg bg-destructive/10 text-destructive font-clash font-bold uppercase text-xs hover:bg-destructive/20 transition-colors"
+              >
+                {lang === 'fr' ? 'Vider l\'historique' : 'Clear history'}
+              </motion.button>
+            </>
+          )}
         </motion.div>
 
         {/* Auto-save */}
