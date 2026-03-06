@@ -37,6 +37,15 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
   const logoInputRef = useRef<HTMLInputElement>(null);
   const payLogoRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
+
+  useEffect(() => {
+    getAllExports().then(setExportHistory).catch(() => {});
+  }, []);
+
+  const refreshExportHistory = () => {
+    getAllExports().then(setExportHistory).catch(() => {});
+  };
+
   const saveProfile = () => {
     storage.setUser(firstName);
     storage.setProfil({ nom: companyName, logo, devise });
