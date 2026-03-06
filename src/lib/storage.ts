@@ -1,4 +1,7 @@
-// Mr.G Suite localStorage helpers
+// Mr.G Suite — Storage layer (IndexedDB backed, sync API with cache)
+// On init, we load from IndexedDB into memory. Writes go to both cache and IDB.
+
+import * as db from './db';
 
 export interface MrgProfil {
   nom: string;
@@ -70,6 +73,48 @@ export interface MrgPaymentInfo {
   methods: PaymentMethod[];
 }
 
+// ========== In-memory cache ==========
+let cache: Record<string, string> = {};
+let ordersCache: MrgOrder[] | null = null;
+let devisCache: MrgDevis[] | null = null;
+let initialized = false;
+
+// Initialize: migrate from localStorage then load from IDB
+export async function initStorage(): Promise<void> {
+  if (initialized) return;
+  
+  await db.migrateFromLocalStorage();
+  
+  // Load settings into cache
+  const keys = ['mrg_user', 'mrg_pin', 'mrg_lang', 'mrg_theme', 'mrg_reminder_days', 'mrg_autosave', 'mrg_profil', 'mrg_tutorial_seen', 'mrg_payment'];
+  for (const key of keys) {
+    const val = await db.getSetting(key);
+    if (val !== undefined) {
+      cache[key] = val;
+    }
+  }
+  
+  ordersCache = await db.getAllOrders();
+  devisCache = await db.getAllDevis();
+  
+  initialized = true;
+}
+
+// Helper to get from cache, falling back to localStorage for pre-init reads
+function get(key: string): string | null {
+  if (key in cache) return cache[key];
+  // Fallback for pre-init (e.g. useAppState initial render)
+  return localStorage.getItem(key);
+}
+
+function set(key: string, value: string) {
+  cache[key] = value;
+  // Also write to localStorage as fallback
+  localStorage.setItem(key, value);
+  // Async write to IDB (fire-and-forget)
+  db.setSetting(key, value).catch(() => {});
+}
+
 const KEYS = {
   user: 'mrg_user',
   pin: 'mrg_pin',
@@ -85,50 +130,61 @@ const KEYS = {
 } as const;
 
 export const storage = {
-  getUser: (): string | null => localStorage.getItem(KEYS.user),
-  setUser: (name: string) => localStorage.setItem(KEYS.user, name),
+  getUser: (): string | null => get(KEYS.user),
+  setUser: (name: string) => set(KEYS.user, name),
 
-  getPin: (): string | null => localStorage.getItem(KEYS.pin),
-  setPin: (pin: string) => localStorage.setItem(KEYS.pin, btoa(pin)),
-  checkPin: (pin: string): boolean => btoa(pin) === localStorage.getItem(KEYS.pin),
+  getPin: (): string | null => get(KEYS.pin),
+  setPin: (pin: string) => set(KEYS.pin, btoa(pin)),
+  checkPin: (pin: string): boolean => btoa(pin) === get(KEYS.pin),
 
-  getLang: (): 'fr' | 'en' => (localStorage.getItem(KEYS.lang) as 'fr' | 'en') || 'fr',
-  setLang: (lang: 'fr' | 'en') => localStorage.setItem(KEYS.lang, lang),
+  getLang: (): 'fr' | 'en' => (get(KEYS.lang) as 'fr' | 'en') || 'fr',
+  setLang: (lang: 'fr' | 'en') => set(KEYS.lang, lang),
 
-  getTheme: (): 'dark' | 'light' => (localStorage.getItem(KEYS.theme) as 'dark' | 'light') || 'dark',
-  setTheme: (theme: 'dark' | 'light') => localStorage.setItem(KEYS.theme, theme),
+  getTheme: (): 'dark' | 'light' => (get(KEYS.theme) as 'dark' | 'light') || 'dark',
+  setTheme: (theme: 'dark' | 'light') => set(KEYS.theme, theme),
 
-  getReminderDays: (): number => parseInt(localStorage.getItem(KEYS.reminderDays) || '3'),
-  setReminderDays: (days: number) => localStorage.setItem(KEYS.reminderDays, String(days)),
+  getReminderDays: (): number => parseInt(get(KEYS.reminderDays) || '3'),
+  setReminderDays: (days: number) => set(KEYS.reminderDays, String(days)),
 
-  getAutosave: (): boolean => localStorage.getItem(KEYS.autosave) !== 'false',
-  setAutosave: (on: boolean) => localStorage.setItem(KEYS.autosave, String(on)),
+  getAutosave: (): boolean => get(KEYS.autosave) !== 'false',
+  setAutosave: (on: boolean) => set(KEYS.autosave, String(on)),
 
   getProfil: (): MrgProfil => {
-    try { return JSON.parse(localStorage.getItem(KEYS.profil) || '{}'); }
+    try { return JSON.parse(get(KEYS.profil) || '{}'); }
     catch { return { nom: '', logo: '', devise: 'XOF' }; }
   },
-  setProfil: (p: MrgProfil) => localStorage.setItem(KEYS.profil, JSON.stringify(p)),
+  setProfil: (p: MrgProfil) => set(KEYS.profil, JSON.stringify(p)),
 
   getOrders: (): MrgOrder[] => {
-    try { return JSON.parse(localStorage.getItem(KEYS.orders) || '[]'); }
+    if (ordersCache !== null) return ordersCache;
+    try { return JSON.parse(get(KEYS.orders) || '[]'); }
     catch { return []; }
   },
-  setOrders: (o: MrgOrder[]) => localStorage.setItem(KEYS.orders, JSON.stringify(o)),
+  setOrders: (o: MrgOrder[]) => {
+    ordersCache = o;
+    // Async write to IDB
+    db.setAllOrders(o).catch(() => {});
+    // localStorage fallback
+    try { localStorage.setItem(KEYS.orders, JSON.stringify(o)); } catch {}
+  },
 
   getDevis: (): MrgDevis[] => {
-    try { return JSON.parse(localStorage.getItem(KEYS.devis) || '[]'); }
+    if (devisCache !== null) return devisCache;
+    try { return JSON.parse(get(KEYS.devis) || '[]'); }
     catch { return []; }
   },
-  setDevis: (d: MrgDevis[]) => localStorage.setItem(KEYS.devis, JSON.stringify(d)),
+  setDevis: (d: MrgDevis[]) => {
+    devisCache = d;
+    db.setAllDevis(d).catch(() => {});
+    try { localStorage.setItem(KEYS.devis, JSON.stringify(d)); } catch {}
+  },
 
-  isTutorialSeen: (): boolean => localStorage.getItem(KEYS.tutorialSeen) === 'true',
-  setTutorialSeen: () => localStorage.setItem(KEYS.tutorialSeen, 'true'),
+  isTutorialSeen: (): boolean => get(KEYS.tutorialSeen) === 'true',
+  setTutorialSeen: () => set(KEYS.tutorialSeen, 'true'),
 
   getPayment: (): MrgPaymentInfo => {
     try {
-      const raw = JSON.parse(localStorage.getItem(KEYS.payment) || '{}');
-      // Migration: if old format without methods array, convert
+      const raw = JSON.parse(get(KEYS.payment) || '{}');
       if (!raw.methods) {
         const methods: PaymentMethod[] = [];
         if (raw.moovPhone) methods.push({ id: 'moov', name: 'Moov Africa', phone: raw.moovPhone, logo: '/images/moov-africa.jpg' });
@@ -145,11 +201,15 @@ export const storage = {
     }
     catch { return { moovPhone: '', yasPhone: '', methods: [] }; }
   },
-  setPayment: (p: MrgPaymentInfo) => localStorage.setItem(KEYS.payment, JSON.stringify(p)),
+  setPayment: (p: MrgPaymentInfo) => set(KEYS.payment, JSON.stringify(p)),
 
-  isFirstLaunch: (): boolean => !localStorage.getItem(KEYS.user),
+  isFirstLaunch: (): boolean => !get(KEYS.user),
 
   resetAll: () => {
+    cache = {};
+    ordersCache = null;
+    devisCache = null;
     Object.values(KEYS).forEach(k => localStorage.removeItem(k));
+    db.resetAllDB().catch(() => {});
   },
 };
