@@ -69,17 +69,31 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
     toast({ title: t('pinUpdated', lang) });
   };
 
-  const exportJSON = () => {
+  const exportJSON = async () => {
     const data = {
       user: storage.getUser(), profil: storage.getProfil(), orders: storage.getOrders(),
       devis: storage.getDevis(), lang: storage.getLang(), theme: storage.getTheme(),
       reminderDays: storage.getReminderDays(), autosave: storage.getAutosave(),
     };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const jsonStr = JSON.stringify(data, null, 2);
+    const filename = `mrg-suite-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url;
-    a.download = `mrg-suite-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = filename;
     a.click(); URL.revokeObjectURL(url);
+
+    // Save to IndexedDB history
+    await addExport({
+      id: Math.random().toString(36).slice(2, 10),
+      date: new Date().toISOString(),
+      type: 'json',
+      filename,
+      data: jsonStr,
+      size: new Blob([jsonStr]).size,
+    });
+    refreshExportHistory();
+    toast({ title: lang === 'fr' ? 'Export sauvegardé dans l\'historique' : 'Export saved to history' });
   };
 
   const exportExcel = async () => {
@@ -92,7 +106,20 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
     })));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Commandes');
-    XLSX.writeFile(wb, `mrg-suite-orders-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    const filename = `mrg-suite-orders-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    XLSX.writeFile(wb, filename);
+
+    // Save metadata to history (not the binary)
+    const jsonBackup = JSON.stringify({ orders, exportedAt: new Date().toISOString() });
+    await addExport({
+      id: Math.random().toString(36).slice(2, 10),
+      date: new Date().toISOString(),
+      type: 'excel',
+      filename,
+      data: jsonBackup,
+      size: new Blob([jsonBackup]).size,
+    });
+    refreshExportHistory();
   };
 
   const importJSON = (e: React.ChangeEvent<HTMLInputElement>) => {
