@@ -32,6 +32,7 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [resetStep, setResetStep] = useState(0);
+  const [exportHistory, setExportHistory] = useState<ExportRecord[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const payLogoRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
