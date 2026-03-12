@@ -57,6 +57,13 @@ const MiniFreightCalc = ({ type, lang, onApply, onClose }: { type: 'boat' | 'pla
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      calculate();
+    }
+  };
+
   const inputClass = "w-full px-3 py-2 rounded-lg bg-secondary border border-border focus:border-primary focus:outline-none font-satoshi text-sm";
 
   return (
@@ -64,7 +71,7 @@ const MiniFreightCalc = ({ type, lang, onApply, onClose }: { type: 'boat' | 'pla
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
-      className="absolute z-50 top-full left-0 mt-2 w-72 glass-card p-4 shadow-xl border border-primary/30"
+      className="absolute z-50 bottom-full left-0 mb-2 w-72 glass-card p-4 shadow-xl border border-primary/30"
     >
       <div className="flex items-center justify-between mb-3">
         <h4 className="font-clash font-bold text-sm uppercase flex items-center gap-2">
@@ -75,7 +82,7 @@ const MiniFreightCalc = ({ type, lang, onApply, onClose }: { type: 'boat' | 'pla
       </div>
 
       {type === 'boat' ? (
-        <div className="space-y-2">
+        <div className="space-y-2" onKeyDown={handleKeyDown}>
           <div className="grid grid-cols-3 gap-2">
             <div>
               <label className="block text-[10px] text-muted-foreground mb-0.5">{t('length', lang)}</label>
@@ -96,7 +103,7 @@ const MiniFreightCalc = ({ type, lang, onApply, onClose }: { type: 'boat' | 'pla
           </div>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2" onKeyDown={handleKeyDown}>
           <div>
             <label className="block text-[10px] text-muted-foreground mb-0.5">{t('weight', lang)}</label>
             <input type="number" value={weight} onChange={e => setWeight(e.target.value)} className={inputClass} />
