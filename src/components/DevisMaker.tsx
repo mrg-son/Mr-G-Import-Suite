@@ -752,7 +752,7 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
                           <div key={imgIdx} className="relative group">
                             <img src={img} alt="" className="w-10 h-10 rounded-lg object-cover border border-border" />
                             <button
-                              onClick={() => setZoomImage({ lineId: line.id, src: img })}
+                              onClick={() => setZoomImage({ lineId: line.id, src: img, imgIndex: imgIdx })}
                               className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center"
                             >
                               <ZoomIn size={12} />
