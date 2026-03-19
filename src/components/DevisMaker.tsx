@@ -16,6 +16,7 @@ const genId = () => Math.random().toString(36).slice(2, 10);
 const emptyLine = (): DevisLigne => ({
   id: genId(),
   image: '',
+  images: [],
   description: '',
   quantite: 1,
   prixUnitaire: 0,
