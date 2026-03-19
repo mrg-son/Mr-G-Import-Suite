@@ -805,7 +805,17 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
             lang={lang}
             onClose={() => setZoomImage(null)}
             onCrop={(cropped) => {
-              updateLine(zoomImage.lineId, { image: cropped });
+              setCurrentDevis(prev => {
+                const lignes = prev.lignes.map(l => {
+                  if (l.id !== zoomImage.lineId) return l;
+                  const images = [...(l.images || [])];
+                  if (zoomImage.imgIndex !== undefined && images[zoomImage.imgIndex]) {
+                    images[zoomImage.imgIndex] = cropped;
+                  }
+                  return { ...l, images, image: images[0] || '' };
+                });
+                return { ...prev, lignes };
+              });
               setZoomImage(null);
             }}
           />
