@@ -275,11 +275,33 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
   };
 
   const handleImageUpload = (lineId: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => updateLine(lineId, { image: ev.target?.result as string });
-    reader.readAsDataURL(file);
+    const files = Array.from(e.target.files || []);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const dataUrl = ev.target?.result as string;
+        setCurrentDevis(prev => {
+          const lignes = prev.lignes.map(l => {
+            if (l.id !== lineId) return l;
+            const images = [...(l.images || []), dataUrl];
+            return { ...l, images, image: images[0] || '' };
+          });
+          return { ...prev, lignes };
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeImage = (lineId: string, imgIndex: number) => {
+    setCurrentDevis(prev => {
+      const lignes = prev.lignes.map(l => {
+        if (l.id !== lineId) return l;
+        const images = (l.images || []).filter((_, i) => i !== imgIndex);
+        return { ...l, images, image: images[0] || '' };
+      });
+      return { ...prev, lignes };
+    });
   };
 
   const saveDevis = () => {
