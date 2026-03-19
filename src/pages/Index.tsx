@@ -57,34 +57,34 @@ const Index = () => {
         theme={theme}
         userName={userName}
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         onToggleLang={() => setLang(lang === 'fr' ? 'en' : 'fr')}
         onToggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
       />
       <div className="relative z-10">
         <AnimatePresence mode="wait">
           {activeTab === 'dashboard' && (
-            <ModuleTransition key="dashboard" type="dashboard">
-              <Dashboard lang={lang} onNavigate={setActiveTab} />
+            <ModuleTransition key={`dashboard-${tabKey}`} type="dashboard">
+              <Dashboard lang={lang} onNavigate={handleTabChange} />
             </ModuleTransition>
           )}
           {activeTab === 'freight' && (
-            <ModuleTransition key="freight" type="freight">
+            <ModuleTransition key={`freight-${tabKey}`} type="freight">
               <FreightCalculator lang={lang} />
             </ModuleTransition>
           )}
           {activeTab === 'devis' && (
-            <ModuleTransition key="devis" type="devis">
-              <DevisMaker lang={lang} onNavigate={setActiveTab} />
+            <ModuleTransition key={`devis-${tabKey}`} type="devis">
+              <DevisMaker lang={lang} onNavigate={handleTabChange} />
             </ModuleTransition>
           )}
           {activeTab === 'orders' && (
-            <ModuleTransition key="orders" type="orders">
-              <ImportTracker lang={lang} />
+            <ModuleTransition key={`orders-${tabKey}`} type="orders">
+              <ImportTracker lang={lang} editOrderId={editOrderId} />
             </ModuleTransition>
           )}
           {activeTab === 'settings' && (
-            <ModuleTransition key="settings" type="settings">
+            <ModuleTransition key={`settings-${tabKey}`} type="settings">
               <SettingsModule
                 lang={lang}
                 onReset={handleReset}
