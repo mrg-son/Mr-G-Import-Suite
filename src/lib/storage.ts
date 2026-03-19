@@ -32,7 +32,8 @@ export interface MrgOrder {
 
 export interface DevisLigne {
   id: string;
-  image: string;
+  image: string; // legacy single image (kept for backward compat)
+  images: string[]; // multiple images
   description: string;
   quantite: number;
   prixUnitaire: number;

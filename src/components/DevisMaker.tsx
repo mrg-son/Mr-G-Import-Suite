@@ -7,7 +7,7 @@ import { Plus, Trash2, FileText, ArrowLeft, Download, Eye, Image, RefreshCw, X, 
 
 interface DevisMakerProps {
   lang: 'fr' | 'en';
-  onNavigate: (tab: string) => void;
+  onNavigate: (tab: string, orderId?: string) => void;
 }
 
 const CURRENCIES = ['XOF', 'EUR', 'USD', 'GBP', 'CAD'];
@@ -16,6 +16,7 @@ const genId = () => Math.random().toString(36).slice(2, 10);
 const emptyLine = (): DevisLigne => ({
   id: genId(),
   image: '',
+  images: [],
   description: '',
   quantite: 1,
   prixUnitaire: 0,
@@ -208,7 +209,7 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
   const [allDevis, setAllDevis] = useState<MrgDevis[]>(storage.getDevis());
   const previewRef = useRef<HTMLDivElement>(null);
   const [miniCalc, setMiniCalc] = useState<{ lineId: string; type: 'boat' | 'plane' } | null>(null);
-  const [zoomImage, setZoomImage] = useState<{ lineId: string; src: string } | null>(null);
+  const [zoomImage, setZoomImage] = useState<{ lineId: string; src: string; imgIndex?: number } | null>(null);
 
   const [currentDevis, setCurrentDevis] = useState<MrgDevis>({
     id: genId(),
@@ -274,11 +275,33 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
   };
 
   const handleImageUpload = (lineId: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => updateLine(lineId, { image: ev.target?.result as string });
-    reader.readAsDataURL(file);
+    const files = Array.from(e.target.files || []);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const dataUrl = ev.target?.result as string;
+        setCurrentDevis(prev => {
+          const lignes = prev.lignes.map(l => {
+            if (l.id !== lineId) return l;
+            const images = [...(l.images || []), dataUrl];
+            return { ...l, images, image: images[0] || '' };
+          });
+          return { ...prev, lignes };
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeImage = (lineId: string, imgIndex: number) => {
+    setCurrentDevis(prev => {
+      const lignes = prev.lignes.map(l => {
+        if (l.id !== lineId) return l;
+        const images = (l.images || []).filter((_, i) => i !== imgIndex);
+        return { ...l, images, image: images[0] || '' };
+      });
+      return { ...prev, lignes };
+    });
   };
 
   const saveDevis = () => {
@@ -327,7 +350,7 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
     setCurrentDevis(prev => ({ ...prev, statut: 'confirme', orderId: order.id }));
     saveDevis();
     toast({ title: t('devisConverted', lang) });
-    onNavigate('orders');
+    onNavigate('orders', order.id);
   };
 
   const exportPDF = () => {
@@ -476,8 +499,12 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
                 <tr key={l.id} className="border-b border-border">
                   <td className="p-2 font-satoshi">{i + 1}</td>
                   <td className="p-2 text-center">
-                    {l.image ? (
-                      <img src={l.image} alt="" className="w-14 h-14 rounded-lg object-cover inline-block" />
+                    {(l.images?.length > 0 || l.image) ? (
+                      <div className="flex gap-1 justify-center flex-wrap">
+                        {(l.images?.length > 0 ? l.images : l.image ? [l.image] : []).map((img, imgIdx) => (
+                          <img key={imgIdx} src={img} alt="" className="w-12 h-12 rounded-lg object-cover inline-block" />
+                        ))}
+                      </div>
                     ) : (
                       <div className="w-14 h-14 rounded-lg bg-muted inline-flex items-center justify-center">
                         <Image size={16} className="text-muted-foreground" />
@@ -713,23 +740,32 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
                 </div>
                 <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
                   <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
                     <label className="cursor-pointer px-2 py-1 rounded-lg bg-secondary hover:bg-muted text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 text-xs font-satoshi">
                       <Image size={14} />
-                      {line.image ? (lang === 'fr' ? 'Changer' : 'Change') : (lang === 'fr' ? 'Ajouter image' : 'Add image')}
-                      <input type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload(line.id, e)} />
+                      {lang === 'fr' ? 'Ajouter images' : 'Add images'}
+                      <input type="file" accept="image/*" multiple className="hidden" onChange={e => handleImageUpload(line.id, e)} />
                     </label>
-                    {line.image && (
-                      <div className="flex items-center gap-1">
-                        <img src={line.image} alt="" className="w-10 h-10 rounded-lg object-cover border border-border" />
-                        <button
-                          onClick={() => setZoomImage({ lineId: line.id, src: line.image })}
-                          className="p-1 rounded-lg bg-secondary hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                          title={lang === 'fr' ? 'Agrandir / Rogner' : 'Zoom / Crop'}
-                        >
-                          <ZoomIn size={14} />
-                        </button>
+                    {(line.images?.length > 0 || line.image) && (
+                      <div className="flex items-center gap-1 flex-wrap">
+                        {(line.images?.length > 0 ? line.images : line.image ? [line.image] : []).map((img, imgIdx) => (
+                          <div key={imgIdx} className="relative group">
+                            <img src={img} alt="" className="w-10 h-10 rounded-lg object-cover border border-border" />
+                            <button
+                              onClick={() => setZoomImage({ lineId: line.id, src: img, imgIndex: imgIdx })}
+                              className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center"
+                            >
+                              <ZoomIn size={12} />
+                            </button>
+                            <button
+                              onClick={() => removeImage(line.id, imgIdx)}
+                              className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            >×</button>
+                          </div>
+                        ))}
                       </div>
                     )}
+                  </div>
                   </div>
                   <p className="font-satoshi font-bold text-primary">{t('lineTotal', lang)}: {formatNum(line.prixTotal, currentDevis.devise)}</p>
                 </div>
@@ -769,7 +805,17 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
             lang={lang}
             onClose={() => setZoomImage(null)}
             onCrop={(cropped) => {
-              updateLine(zoomImage.lineId, { image: cropped });
+              setCurrentDevis(prev => {
+                const lignes = prev.lignes.map(l => {
+                  if (l.id !== zoomImage.lineId) return l;
+                  const images = [...(l.images || [])];
+                  if (zoomImage.imgIndex !== undefined && images[zoomImage.imgIndex]) {
+                    images[zoomImage.imgIndex] = cropped;
+                  }
+                  return { ...l, images, image: images[0] || '' };
+                });
+                return { ...prev, lignes };
+              });
               setZoomImage(null);
             }}
           />
