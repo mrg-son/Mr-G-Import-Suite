@@ -209,7 +209,7 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
   const [allDevis, setAllDevis] = useState<MrgDevis[]>(storage.getDevis());
   const previewRef = useRef<HTMLDivElement>(null);
   const [miniCalc, setMiniCalc] = useState<{ lineId: string; type: 'boat' | 'plane' } | null>(null);
-  const [zoomImage, setZoomImage] = useState<{ lineId: string; src: string } | null>(null);
+  const [zoomImage, setZoomImage] = useState<{ lineId: string; src: string; imgIndex?: number } | null>(null);
 
   const [currentDevis, setCurrentDevis] = useState<MrgDevis>({
     id: genId(),
