@@ -6,7 +6,7 @@ interface AppNavbarProps {
   theme: 'dark' | 'light';
   userName: string;
   activeTab: string;
-  onTabChange: (tab: string) => void;
+  onTabChange: (tab: string, orderId?: string) => void;
   onToggleLang: () => void;
   onToggleTheme: () => void;
 }
