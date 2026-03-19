@@ -72,11 +72,23 @@ const emptyOrder = (): MrgOrder => ({
 
 type View = 'dashboard' | 'list' | 'form' | 'detail';
 
-const ImportTracker = ({ lang }: ImportTrackerProps) => {
+const ImportTracker = ({ lang, editOrderId }: ImportTrackerProps) => {
   const { toast } = useToast();
   const [orders, setOrders] = useState<MrgOrder[]>(storage.getOrders());
-  const [view, setView] = useState<View>('dashboard');
-  const [currentOrder, setCurrentOrder] = useState<MrgOrder>(emptyOrder());
+  const [view, setView] = useState<View>(() => {
+    if (editOrderId) {
+      const found = storage.getOrders().find(o => o.id === editOrderId);
+      if (found) return 'form';
+    }
+    return 'dashboard';
+  });
+  const [currentOrder, setCurrentOrder] = useState<MrgOrder>(() => {
+    if (editOrderId) {
+      const found = storage.getOrders().find(o => o.id === editOrderId);
+      if (found) return found;
+    }
+    return emptyOrder();
+  });
   const [search, setSearch] = useState('');
   const [filterMonth, setFilterMonth] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
