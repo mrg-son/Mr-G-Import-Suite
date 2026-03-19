@@ -327,7 +327,7 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
     setCurrentDevis(prev => ({ ...prev, statut: 'confirme', orderId: order.id }));
     saveDevis();
     toast({ title: t('devisConverted', lang) });
-    onNavigate('orders');
+    onNavigate('orders', order.id);
   };
 
   const exportPDF = () => {
