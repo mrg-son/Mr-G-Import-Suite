@@ -7,7 +7,7 @@ import { Plus, Trash2, FileText, ArrowLeft, Download, Eye, Image, RefreshCw, X, 
 
 interface DevisMakerProps {
   lang: 'fr' | 'en';
-  onNavigate: (tab: string) => void;
+  onNavigate: (tab: string, orderId?: string) => void;
 }
 
 const CURRENCIES = ['XOF', 'EUR', 'USD', 'GBP', 'CAD'];
