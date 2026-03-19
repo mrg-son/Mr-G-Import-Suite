@@ -499,8 +499,12 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
                 <tr key={l.id} className="border-b border-border">
                   <td className="p-2 font-satoshi">{i + 1}</td>
                   <td className="p-2 text-center">
-                    {l.image ? (
-                      <img src={l.image} alt="" className="w-14 h-14 rounded-lg object-cover inline-block" />
+                    {(l.images?.length > 0 || l.image) ? (
+                      <div className="flex gap-1 justify-center flex-wrap">
+                        {(l.images?.length > 0 ? l.images : l.image ? [l.image] : []).map((img, imgIdx) => (
+                          <img key={imgIdx} src={img} alt="" className="w-12 h-12 rounded-lg object-cover inline-block" />
+                        ))}
+                      </div>
                     ) : (
                       <div className="w-14 h-14 rounded-lg bg-muted inline-flex items-center justify-center">
                         <Image size={16} className="text-muted-foreground" />
