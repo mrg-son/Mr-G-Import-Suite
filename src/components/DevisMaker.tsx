@@ -736,23 +736,32 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
                 </div>
                 <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
                   <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
                     <label className="cursor-pointer px-2 py-1 rounded-lg bg-secondary hover:bg-muted text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 text-xs font-satoshi">
                       <Image size={14} />
-                      {line.image ? (lang === 'fr' ? 'Changer' : 'Change') : (lang === 'fr' ? 'Ajouter image' : 'Add image')}
-                      <input type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload(line.id, e)} />
+                      {lang === 'fr' ? 'Ajouter images' : 'Add images'}
+                      <input type="file" accept="image/*" multiple className="hidden" onChange={e => handleImageUpload(line.id, e)} />
                     </label>
-                    {line.image && (
-                      <div className="flex items-center gap-1">
-                        <img src={line.image} alt="" className="w-10 h-10 rounded-lg object-cover border border-border" />
-                        <button
-                          onClick={() => setZoomImage({ lineId: line.id, src: line.image })}
-                          className="p-1 rounded-lg bg-secondary hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                          title={lang === 'fr' ? 'Agrandir / Rogner' : 'Zoom / Crop'}
-                        >
-                          <ZoomIn size={14} />
-                        </button>
+                    {(line.images?.length > 0 || line.image) && (
+                      <div className="flex items-center gap-1 flex-wrap">
+                        {(line.images?.length > 0 ? line.images : line.image ? [line.image] : []).map((img, imgIdx) => (
+                          <div key={imgIdx} className="relative group">
+                            <img src={img} alt="" className="w-10 h-10 rounded-lg object-cover border border-border" />
+                            <button
+                              onClick={() => setZoomImage({ lineId: line.id, src: img })}
+                              className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center"
+                            >
+                              <ZoomIn size={12} />
+                            </button>
+                            <button
+                              onClick={() => removeImage(line.id, imgIdx)}
+                              className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            >×</button>
+                          </div>
+                        ))}
                       </div>
                     )}
+                  </div>
                   </div>
                   <p className="font-satoshi font-bold text-primary">{t('lineTotal', lang)}: {formatNum(line.prixTotal, currentDevis.devise)}</p>
                 </div>
