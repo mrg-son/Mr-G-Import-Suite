@@ -8,6 +8,7 @@ import { Plus, ArrowLeft, Trash2, Star, Ship, Plane, AlertTriangle, Search, Mess
 
 interface ImportTrackerProps {
   lang: 'fr' | 'en';
+  editOrderId?: string | null;
 }
 
 const genId = () => Math.random().toString(36).slice(2, 10);
