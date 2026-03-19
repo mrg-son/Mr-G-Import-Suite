@@ -23,6 +23,15 @@ const Index = () => {
   } = useAppState();
 
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [editOrderId, setEditOrderId] = useState<string | null>(null);
+  const [tabKey, setTabKey] = useState(0);
+
+  // Wrapper to force remount on tab change for fresh data
+  const handleTabChange = (tab: string, orderId?: string) => {
+    setEditOrderId(orderId || null);
+    setActiveTab(tab);
+    setTabKey(k => k + 1);
+  };
 
   if (screen === 'onboarding') {
     return <Onboarding lang={lang} onComplete={completeOnboarding} />;
