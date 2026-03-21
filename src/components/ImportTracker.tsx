@@ -141,7 +141,7 @@ const ImportTracker = ({ lang, editOrderId }: ImportTrackerProps) => {
       d.setMonth(d.getMonth() - i);
       const m = d.getMonth();
       const y = d.getFullYear();
-      const profit = orders
+      const profit = allOrdersForCharts
         .filter(o => { const od = new Date(o.createdAt); return od.getMonth() === m && od.getFullYear() === y; })
         .reduce((s, o) => s + o.profit, 0);
       months.push({ name: d.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', { month: 'short' }), profit });
