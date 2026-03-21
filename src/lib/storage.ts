@@ -87,7 +87,7 @@ export async function initStorage(): Promise<void> {
   await db.migrateFromLocalStorage();
   
   // Load settings into cache
-  const keys = ['mrg_user', 'mrg_pin', 'mrg_lang', 'mrg_theme', 'mrg_reminder_days', 'mrg_autosave', 'mrg_profil', 'mrg_tutorial_seen', 'mrg_payment'];
+  const keys = ['mrg_user', 'mrg_pin', 'mrg_lang', 'mrg_theme', 'mrg_reminder_days', 'mrg_autosave', 'mrg_profil', 'mrg_tutorial_seen', 'mrg_payment', 'mrg_orders_disabled'];
   for (const key of keys) {
     const val = await db.getSetting(key);
     if (val !== undefined) {
