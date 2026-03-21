@@ -88,6 +88,7 @@ const Index = () => {
             <ModuleTransition key={`archives-${tabKey}`} type="orders">
               <ArchivesModule lang={lang} />
             </ModuleTransition>
+          )}
           {activeTab === 'settings' && (
             <ModuleTransition key={`settings-${tabKey}`} type="settings">
               <SettingsModule
