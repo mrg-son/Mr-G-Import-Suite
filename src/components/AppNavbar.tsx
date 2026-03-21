@@ -1,4 +1,5 @@
 import { t } from '@/lib/i18n';
+import { storage } from '@/lib/storage';
 import { Moon, Sun } from 'lucide-react';
 
 interface AppNavbarProps {
@@ -11,7 +12,7 @@ interface AppNavbarProps {
   onToggleTheme: () => void;
 }
 
-const tabs = ['dashboard', 'freight', 'devis', 'orders', 'settings'] as const;
+const allTabs = ['dashboard', 'freight', 'devis', 'orders', 'settings'] as const;
 const tabLabelKeys = {
   dashboard: 'navDashboard',
   freight: 'navFreight',
