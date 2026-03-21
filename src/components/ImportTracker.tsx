@@ -350,10 +350,11 @@ const ImportTracker = ({ lang, editOrderId }: ImportTrackerProps) => {
                       {formatNum(o.profit, devise)}
                     </span>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1">
                     <button onClick={() => { setCurrentOrder(o); setView('detail'); }} className="p-2 rounded-lg text-muted-foreground hover:text-foreground transition-colors"><Eye size={16} /></button>
                     <button onClick={() => { setCurrentOrder(o); setView('form'); }} className="p-2 rounded-lg text-muted-foreground hover:text-primary transition-colors"><Edit size={16} /></button>
                     {o.phone && <button onClick={() => openWhatsApp(o.phone, o.client)} className="p-2 rounded-lg text-muted-foreground hover:text-[hsl(var(--status-recupere))] transition-colors"><MessageCircle size={16} /></button>}
+                    <button onClick={() => archiveOrder(o.id)} className="p-2 rounded-lg text-muted-foreground hover:text-or transition-colors" title={t('archiveOrder', lang)}><Archive size={16} /></button>
                     <button onClick={() => deleteOrder(o.id)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive transition-colors"><Trash2 size={16} /></button>
                   </div>
                 </div>
