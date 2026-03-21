@@ -128,6 +128,7 @@ const KEYS = {
   profil: 'mrg_profil',
   tutorialSeen: 'mrg_tutorial_seen',
   payment: 'mrg_payment',
+  ordersDisabled: 'mrg_orders_disabled',
 } as const;
 
 export const storage = {
