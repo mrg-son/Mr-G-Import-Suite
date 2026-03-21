@@ -12,6 +12,7 @@ import FreightCalculator from '@/components/FreightCalculator';
 import DevisMaker from '@/components/DevisMaker';
 import ImportTracker from '@/components/ImportTracker';
 import SettingsModule from '@/components/SettingsModule';
+import ArchivesModule from '@/components/ArchivesModule';
 import ModuleTransition from '@/components/ModuleTransition';
 
 const Index = () => {
@@ -81,6 +82,11 @@ const Index = () => {
           {activeTab === 'orders' && (
             <ModuleTransition key={`orders-${tabKey}`} type="orders">
               <ImportTracker lang={lang} editOrderId={editOrderId} />
+            </ModuleTransition>
+          )}
+          {activeTab === 'archives' && (
+            <ModuleTransition key={`archives-${tabKey}`} type="orders">
+              <ArchivesModule lang={lang} />
             </ModuleTransition>
           )}
           {activeTab === 'settings' && (

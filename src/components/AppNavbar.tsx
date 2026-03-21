@@ -12,12 +12,13 @@ interface AppNavbarProps {
   onToggleTheme: () => void;
 }
 
-const allTabs = ['dashboard', 'freight', 'devis', 'orders', 'settings'] as const;
+const allTabs = ['dashboard', 'freight', 'devis', 'orders', 'archives', 'settings'] as const;
 const tabLabelKeys = {
   dashboard: 'navDashboard',
   freight: 'navFreight',
   devis: 'navDevis',
   orders: 'navOrders',
+  archives: 'navArchives',
   settings: 'navSettings',
 } as const;
 

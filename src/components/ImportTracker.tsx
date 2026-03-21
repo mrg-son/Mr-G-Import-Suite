@@ -4,7 +4,7 @@ import { t } from '@/lib/i18n';
 import { storage, MrgOrder } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Plus, ArrowLeft, Trash2, Star, Ship, Plane, AlertTriangle, Search, MessageCircle, Eye, Edit } from 'lucide-react';
+import { Plus, ArrowLeft, Trash2, Star, Ship, Plane, AlertTriangle, Search, MessageCircle, Eye, Edit, Archive } from 'lucide-react';
 
 interface ImportTrackerProps {
   lang: 'fr' | 'en';
@@ -76,7 +76,8 @@ type View = 'dashboard' | 'list' | 'form' | 'detail';
 
 const ImportTracker = ({ lang, editOrderId }: ImportTrackerProps) => {
   const { toast } = useToast();
-  const [orders, setOrders] = useState<MrgOrder[]>(storage.getOrders());
+  const [orders, setOrders] = useState<MrgOrder[]>(() => storage.getOrders().filter(o => !o.archived));
+  const allOrdersForCharts = storage.getOrders(); // includes archived for charts
   const [view, setView] = useState<View>(() => {
     if (editOrderId) {
       const found = storage.getOrders().find(o => o.id === editOrderId);
@@ -100,9 +101,20 @@ const ImportTracker = ({ lang, editOrderId }: ImportTrackerProps) => {
   const devise = profil.devise || 'XOF';
   const reminderDays = storage.getReminderDays();
 
-  const saveOrdersToStorage = (o: MrgOrder[]) => {
-    storage.setOrders(o);
-    setOrders(o);
+  const saveOrdersToStorage = (activeOrders: MrgOrder[]) => {
+    // Merge with archived orders before saving
+    const archived = storage.getOrders().filter(o => o.archived);
+    storage.setOrders([...activeOrders, ...archived]);
+    setOrders(activeOrders);
+  };
+
+  const archiveOrder = (id: string) => {
+    const all = storage.getOrders();
+    const updated = all.map(o => o.id === id ? { ...o, archived: true } : o);
+    storage.setOrders(updated);
+    setOrders(updated.filter(o => !o.archived));
+    toast({ title: lang === 'fr' ? 'Commande archivée' : 'Order archived' });
+    if (view === 'detail' || view === 'form') setView('list');
   };
 
   // Stats
@@ -129,7 +141,7 @@ const ImportTracker = ({ lang, editOrderId }: ImportTrackerProps) => {
       d.setMonth(d.getMonth() - i);
       const m = d.getMonth();
       const y = d.getFullYear();
-      const profit = orders
+      const profit = allOrdersForCharts
         .filter(o => { const od = new Date(o.createdAt); return od.getMonth() === m && od.getFullYear() === y; })
         .reduce((s, o) => s + o.profit, 0);
       months.push({ name: d.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', { month: 'short' }), profit });
@@ -338,10 +350,11 @@ const ImportTracker = ({ lang, editOrderId }: ImportTrackerProps) => {
                       {formatNum(o.profit, devise)}
                     </span>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1">
                     <button onClick={() => { setCurrentOrder(o); setView('detail'); }} className="p-2 rounded-lg text-muted-foreground hover:text-foreground transition-colors"><Eye size={16} /></button>
                     <button onClick={() => { setCurrentOrder(o); setView('form'); }} className="p-2 rounded-lg text-muted-foreground hover:text-primary transition-colors"><Edit size={16} /></button>
                     {o.phone && <button onClick={() => openWhatsApp(o.phone, o.client)} className="p-2 rounded-lg text-muted-foreground hover:text-[hsl(var(--status-recupere))] transition-colors"><MessageCircle size={16} /></button>}
+                    <button onClick={() => archiveOrder(o.id)} className="p-2 rounded-lg text-muted-foreground hover:text-or transition-colors" title={t('archiveOrder', lang)}><Archive size={16} /></button>
                     <button onClick={() => deleteOrder(o.id)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive transition-colors"><Trash2 size={16} /></button>
                   </div>
                 </div>
