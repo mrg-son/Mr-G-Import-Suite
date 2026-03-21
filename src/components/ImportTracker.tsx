@@ -101,9 +101,20 @@ const ImportTracker = ({ lang, editOrderId }: ImportTrackerProps) => {
   const devise = profil.devise || 'XOF';
   const reminderDays = storage.getReminderDays();
 
-  const saveOrdersToStorage = (o: MrgOrder[]) => {
-    storage.setOrders(o);
-    setOrders(o);
+  const saveOrdersToStorage = (activeOrders: MrgOrder[]) => {
+    // Merge with archived orders before saving
+    const archived = storage.getOrders().filter(o => o.archived);
+    storage.setOrders([...activeOrders, ...archived]);
+    setOrders(activeOrders);
+  };
+
+  const archiveOrder = (id: string) => {
+    const all = storage.getOrders();
+    const updated = all.map(o => o.id === id ? { ...o, archived: true } : o);
+    storage.setOrders(updated);
+    setOrders(updated.filter(o => !o.archived));
+    toast({ title: lang === 'fr' ? 'Commande archivée' : 'Order archived' });
+    if (view === 'detail' || view === 'form') setView('list');
   };
 
   // Stats
