@@ -16,13 +16,15 @@ const genId = () => Math.random().toString(36).slice(2, 10);
 const formatNum = (n: number, c = 'XOF') => new Intl.NumberFormat('fr-FR').format(Math.round(n)) + ' ' + c;
 
 const statusColors: Record<string, string> = {
+  'pas-commande': 'bg-[hsl(var(--status-pas-commande))] text-primary-foreground',
+  'preparation': 'bg-[hsl(var(--status-preparation))] text-primary-foreground',
   'en-cours': 'bg-[hsl(var(--status-en-cours))] text-[hsl(0,0%,7%)]',
   'arrive': 'bg-[hsl(var(--status-arrive))] text-primary-foreground',
   'recupere': 'bg-[hsl(var(--status-recupere))] text-[hsl(0,0%,7%)]',
   'livre': 'bg-[hsl(var(--status-livre))] text-primary-foreground',
 };
 
-const statusLabels = { 'en-cours': 'enCours', 'arrive': 'arrive', 'recupere': 'recupere', 'livre': 'livre' } as const;
+const statusLabels = { 'pas-commande': 'pasCommande', 'preparation': 'preparation', 'en-cours': 'enCours', 'arrive': 'arrive', 'recupere': 'recupere', 'livre': 'livre' } as const;
 
 const TransportBadge = ({ type, lang }: { type: string; lang: 'fr' | 'en' }) => {
   if (type === 'avion') return (
