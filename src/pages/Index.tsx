@@ -12,6 +12,7 @@ import FreightCalculator from '@/components/FreightCalculator';
 import DevisMaker from '@/components/DevisMaker';
 import ImportTracker from '@/components/ImportTracker';
 import SettingsModule from '@/components/SettingsModule';
+import ArchivesModule from '@/components/ArchivesModule';
 import ModuleTransition from '@/components/ModuleTransition';
 
 const Index = () => {
