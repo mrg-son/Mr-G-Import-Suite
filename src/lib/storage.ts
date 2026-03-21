@@ -28,6 +28,7 @@ export interface MrgOrder {
   suggestions: string;
   devisId: string;
   createdAt: string;
+  archived?: boolean;
 }
 
 export interface DevisLigne {

@@ -370,6 +370,14 @@ export const LABELS = {
 
     // Import Tracker
     trackerTitle: "Import Tracker",
+    archives: "Archives",
+    archivesDesc: "View your archived old orders",
+    archiveOrder: "Archive",
+    unarchiveOrder: "Unarchive",
+    archived: "Archived",
+    addOldOrder: "Add an old order",
+    noArchives: "No archived orders",
+    navArchives: "Archives",
     totalOrders: "Total orders",
     totalProfit: "Total profit",
     thisMonth: "This month",
