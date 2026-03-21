@@ -56,6 +56,8 @@
     --surface-sombre: 200 33% 15%;
 
     /* Status colors */
+    --status-pas-commande: 0 0% 60%;
+    --status-preparation: 280 60% 55%;
     --status-en-cours: 51 100% 50%;
     --status-arrive: 207 100% 50%;
     --status-recupere: 145 100% 45%;

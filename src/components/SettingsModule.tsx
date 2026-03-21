@@ -26,6 +26,7 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
   const [devise, setDevise] = useState(profil.devise || 'XOF');
   const [reminderDays, setReminderDays] = useState(storage.getReminderDays());
   const [autosave, setAutosave] = useState(storage.getAutosave());
+  const [ordersDisabled, setOrdersDisabled] = useState(storage.getOrdersDisabled());
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(paymentData.methods || []);
 
   const [oldPin, setOldPin] = useState('');
@@ -518,6 +519,23 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
             </div>
             <motion.button whileTap={{ scale: 0.9 }} onClick={toggleAutosave} className="text-primary">
               {autosave ? <ToggleRight size={40} /> : <ToggleLeft size={40} className="text-muted-foreground" />}
+            </motion.button>
+          </div>
+        </motion.div>
+
+        {/* Disable Orders */}
+        <motion.div custom={5.5} variants={sectionVariants} initial="hidden" animate="visible" className="glass-card p-6 mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-clash font-bold uppercase tracking-wider text-lg">{t('disableOrders', lang)}</h2>
+              <p className="text-sm text-muted-foreground font-satoshi">{t('disableOrdersDesc', lang)}</p>
+            </div>
+            <motion.button whileTap={{ scale: 0.9 }} onClick={() => {
+              const next = !ordersDisabled;
+              setOrdersDisabled(next);
+              storage.setOrdersDisabled(next);
+            }} className="text-primary">
+              {ordersDisabled ? <ToggleRight size={40} className="text-destructive" /> : <ToggleLeft size={40} className="text-muted-foreground" />}
             </motion.button>
           </div>
         </motion.div>

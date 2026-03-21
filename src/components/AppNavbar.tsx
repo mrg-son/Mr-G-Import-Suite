@@ -1,4 +1,5 @@
 import { t } from '@/lib/i18n';
+import { storage } from '@/lib/storage';
 import { Moon, Sun } from 'lucide-react';
 
 interface AppNavbarProps {
@@ -11,7 +12,7 @@ interface AppNavbarProps {
   onToggleTheme: () => void;
 }
 
-const tabs = ['dashboard', 'freight', 'devis', 'orders', 'settings'] as const;
+const allTabs = ['dashboard', 'freight', 'devis', 'orders', 'settings'] as const;
 const tabLabelKeys = {
   dashboard: 'navDashboard',
   freight: 'navFreight',
@@ -21,6 +22,7 @@ const tabLabelKeys = {
 } as const;
 
 const AppNavbar = ({ lang, theme, userName, activeTab, onTabChange, onToggleLang, onToggleTheme }: AppNavbarProps) => {
+  const tabs = storage.getOrdersDisabled() ? allTabs.filter(t => t !== 'orders') : allTabs;
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-surface-sombre/90 backdrop-blur-[40px] saturate-[180%] border-b border-border/30">
       <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">

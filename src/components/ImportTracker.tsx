@@ -16,13 +16,15 @@ const genId = () => Math.random().toString(36).slice(2, 10);
 const formatNum = (n: number, c = 'XOF') => new Intl.NumberFormat('fr-FR').format(Math.round(n)) + ' ' + c;
 
 const statusColors: Record<string, string> = {
+  'pas-commande': 'bg-[hsl(var(--status-pas-commande))] text-primary-foreground',
+  'preparation': 'bg-[hsl(var(--status-preparation))] text-primary-foreground',
   'en-cours': 'bg-[hsl(var(--status-en-cours))] text-[hsl(0,0%,7%)]',
   'arrive': 'bg-[hsl(var(--status-arrive))] text-primary-foreground',
   'recupere': 'bg-[hsl(var(--status-recupere))] text-[hsl(0,0%,7%)]',
   'livre': 'bg-[hsl(var(--status-livre))] text-primary-foreground',
 };
 
-const statusLabels = { 'en-cours': 'enCours', 'arrive': 'arrive', 'recupere': 'recupere', 'livre': 'livre' } as const;
+const statusLabels = { 'pas-commande': 'pasCommande', 'preparation': 'preparation', 'en-cours': 'enCours', 'arrive': 'arrive', 'recupere': 'recupere', 'livre': 'livre' } as const;
 
 const TransportBadge = ({ type, lang }: { type: string; lang: 'fr' | 'en' }) => {
   if (type === 'avion') return (
@@ -61,7 +63,7 @@ const emptyOrder = (): MrgOrder => ({
   dateArrival: '',
   datePickup: '',
   dateDelivery: '',
-  status: 'en-cours',
+  status: 'pas-commande',
   photos: [],
   rating: 0,
   review: '',
@@ -302,6 +304,8 @@ const ImportTracker = ({ lang, editOrderId }: ImportTrackerProps) => {
               </select>
               <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2 rounded-lg bg-secondary border border-border focus:border-primary focus:outline-none font-satoshi text-sm">
                 <option value="">{t('allStatuses', lang)}</option>
+                <option value="pas-commande">{t('pasCommande', lang)}</option>
+                <option value="preparation">{t('preparation', lang)}</option>
                 <option value="en-cours">{t('enCours', lang)}</option>
                 <option value="arrive">{t('arrive', lang)}</option>
                 <option value="recupere">{t('recupere', lang)}</option>
@@ -498,8 +502,8 @@ const ImportTracker = ({ lang, editOrderId }: ImportTrackerProps) => {
           {/* Status */}
           <div className="glass-card p-6 space-y-4">
             <h2 className="font-clash font-bold uppercase text-sm tracking-wider">{t('status', lang)}</h2>
-            <div className="flex gap-2">
-              {(['en-cours', 'arrive', 'recupere', 'livre'] as const).map(s => (
+            <div className="flex gap-2 flex-wrap">
+              {(['pas-commande', 'preparation', 'en-cours', 'arrive', 'recupere', 'livre'] as const).map(s => (
                 <button
                   key={s}
                   onClick={() => setCurrentOrder(p => ({ ...p, status: s }))}

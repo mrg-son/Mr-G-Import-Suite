@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { t } from '@/lib/i18n';
+import { storage } from '@/lib/storage';
 import { Ship, Plane, FileText, Package, Settings } from 'lucide-react';
 
 interface DashboardProps {
@@ -7,7 +8,7 @@ interface DashboardProps {
   onNavigate: (tab: string) => void;
 }
 
-const modules = [
+const allModules = [
   { key: 'freight', labelKey: 'freightCalc' as const, descKey: 'freightDesc' as const, icon: Ship, color: 'bg-primary/15 text-primary', tab: 'freight' },
   { key: 'devis', labelKey: 'devisMaker' as const, descKey: 'devisDesc' as const, icon: FileText, color: 'bg-or/15 text-or', tab: 'devis' },
   { key: 'tracker', labelKey: 'importTracker' as const, descKey: 'trackerDesc' as const, icon: Package, color: 'bg-bleu-mer/15 text-bleu-mer', tab: 'orders' },
@@ -15,6 +16,7 @@ const modules = [
 ];
 
 const Dashboard = ({ lang, onNavigate }: DashboardProps) => {
+  const modules = storage.getOrdersDisabled() ? allModules.filter(m => m.tab !== 'orders') : allModules;
   return (
     <div className="max-w-5xl mx-auto px-4 pt-24 md:pt-20 pb-8">
       <motion.div

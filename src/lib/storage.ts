@@ -21,7 +21,7 @@ export interface MrgOrder {
   dateArrival: string;
   datePickup: string;
   dateDelivery: string;
-  status: 'en-cours' | 'arrive' | 'recupere' | 'livre';
+  status: 'pas-commande' | 'preparation' | 'en-cours' | 'arrive' | 'recupere' | 'livre';
   photos: string[];
   rating: number;
   review: string;
@@ -87,7 +87,7 @@ export async function initStorage(): Promise<void> {
   await db.migrateFromLocalStorage();
   
   // Load settings into cache
-  const keys = ['mrg_user', 'mrg_pin', 'mrg_lang', 'mrg_theme', 'mrg_reminder_days', 'mrg_autosave', 'mrg_profil', 'mrg_tutorial_seen', 'mrg_payment'];
+  const keys = ['mrg_user', 'mrg_pin', 'mrg_lang', 'mrg_theme', 'mrg_reminder_days', 'mrg_autosave', 'mrg_profil', 'mrg_tutorial_seen', 'mrg_payment', 'mrg_orders_disabled'];
   for (const key of keys) {
     const val = await db.getSetting(key);
     if (val !== undefined) {
@@ -128,6 +128,7 @@ const KEYS = {
   profil: 'mrg_profil',
   tutorialSeen: 'mrg_tutorial_seen',
   payment: 'mrg_payment',
+  ordersDisabled: 'mrg_orders_disabled',
 } as const;
 
 export const storage = {
@@ -182,6 +183,9 @@ export const storage = {
 
   isTutorialSeen: (): boolean => get(KEYS.tutorialSeen) === 'true',
   setTutorialSeen: () => set(KEYS.tutorialSeen, 'true'),
+
+  getOrdersDisabled: (): boolean => get(KEYS.ordersDisabled) === 'true',
+  setOrdersDisabled: (disabled: boolean) => set(KEYS.ordersDisabled, String(disabled)),
 
   getPayment: (): MrgPaymentInfo => {
     try {
