@@ -26,6 +26,7 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
   const [devise, setDevise] = useState(profil.devise || 'XOF');
   const [reminderDays, setReminderDays] = useState(storage.getReminderDays());
   const [autosave, setAutosave] = useState(storage.getAutosave());
+  const [ordersDisabled, setOrdersDisabled] = useState(storage.getOrdersDisabled());
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(paymentData.methods || []);
 
   const [oldPin, setOldPin] = useState('');
