@@ -304,6 +304,8 @@ const ImportTracker = ({ lang, editOrderId }: ImportTrackerProps) => {
               </select>
               <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2 rounded-lg bg-secondary border border-border focus:border-primary focus:outline-none font-satoshi text-sm">
                 <option value="">{t('allStatuses', lang)}</option>
+                <option value="pas-commande">{t('pasCommande', lang)}</option>
+                <option value="preparation">{t('preparation', lang)}</option>
                 <option value="en-cours">{t('enCours', lang)}</option>
                 <option value="arrive">{t('arrive', lang)}</option>
                 <option value="recupere">{t('recupere', lang)}</option>
