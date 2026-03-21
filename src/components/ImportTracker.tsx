@@ -63,7 +63,7 @@ const emptyOrder = (): MrgOrder => ({
   dateArrival: '',
   datePickup: '',
   dateDelivery: '',
-  status: 'en-cours',
+  status: 'pas-commande',
   photos: [],
   rating: 0,
   review: '',
