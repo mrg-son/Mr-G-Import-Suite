@@ -502,8 +502,8 @@ const ImportTracker = ({ lang, editOrderId }: ImportTrackerProps) => {
           {/* Status */}
           <div className="glass-card p-6 space-y-4">
             <h2 className="font-clash font-bold uppercase text-sm tracking-wider">{t('status', lang)}</h2>
-            <div className="flex gap-2">
-              {(['en-cours', 'arrive', 'recupere', 'livre'] as const).map(s => (
+            <div className="flex gap-2 flex-wrap">
+              {(['pas-commande', 'preparation', 'en-cours', 'arrive', 'recupere', 'livre'] as const).map(s => (
                 <button
                   key={s}
                   onClick={() => setCurrentOrder(p => ({ ...p, status: s }))}
