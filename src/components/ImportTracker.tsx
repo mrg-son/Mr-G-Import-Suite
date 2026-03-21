@@ -77,7 +77,8 @@ type View = 'dashboard' | 'list' | 'form' | 'detail';
 const ImportTracker = ({ lang, editOrderId }: ImportTrackerProps) => {
   const { toast } = useToast();
   const [orders, setOrders] = useState<MrgOrder[]>(() => storage.getOrders().filter(o => !o.archived));
-  const allOrders = storage.getOrders(); // includes archived for charts
+  const allOrdersForCharts = storage.getOrders(); // includes archived for charts
+  const [view, setView] = useState<View>(() => {
     if (editOrderId) {
       const found = storage.getOrders().find(o => o.id === editOrderId);
       if (found) return 'form';
