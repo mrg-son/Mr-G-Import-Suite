@@ -4,7 +4,7 @@ import { t } from '@/lib/i18n';
 import { storage, MrgOrder } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Plus, ArrowLeft, Trash2, Star, Ship, Plane, AlertTriangle, Search, MessageCircle, Eye, Edit } from 'lucide-react';
+import { Plus, ArrowLeft, Trash2, Star, Ship, Plane, AlertTriangle, Search, MessageCircle, Eye, Edit, Archive } from 'lucide-react';
 
 interface ImportTrackerProps {
   lang: 'fr' | 'en';
