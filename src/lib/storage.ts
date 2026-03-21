@@ -21,7 +21,7 @@ export interface MrgOrder {
   dateArrival: string;
   datePickup: string;
   dateDelivery: string;
-  status: 'en-cours' | 'arrive' | 'recupere' | 'livre';
+  status: 'pas-commande' | 'preparation' | 'en-cours' | 'arrive' | 'recupere' | 'livre';
   photos: string[];
   rating: number;
   review: string;
