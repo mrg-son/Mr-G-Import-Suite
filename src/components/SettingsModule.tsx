@@ -523,6 +523,23 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
           </div>
         </motion.div>
 
+        {/* Disable Orders */}
+        <motion.div custom={5.5} variants={sectionVariants} initial="hidden" animate="visible" className="glass-card p-6 mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-clash font-bold uppercase tracking-wider text-lg">{t('disableOrders', lang)}</h2>
+              <p className="text-sm text-muted-foreground font-satoshi">{t('disableOrdersDesc', lang)}</p>
+            </div>
+            <motion.button whileTap={{ scale: 0.9 }} onClick={() => {
+              const next = !ordersDisabled;
+              setOrdersDisabled(next);
+              storage.setOrdersDisabled(next);
+            }} className="text-primary">
+              {ordersDisabled ? <ToggleRight size={40} className="text-destructive" /> : <ToggleLeft size={40} className="text-muted-foreground" />}
+            </motion.button>
+          </div>
+        </motion.div>
+
         {/* Danger Zone */}
         <motion.div custom={6} variants={sectionVariants} initial="hidden" animate="visible" className="glass-card p-6 border-2 border-destructive/30">
           <h2 className="font-clash font-bold uppercase tracking-wider text-lg mb-4 flex items-center gap-2 text-destructive">
