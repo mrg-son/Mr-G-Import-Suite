@@ -184,6 +184,9 @@ export const storage = {
   isTutorialSeen: (): boolean => get(KEYS.tutorialSeen) === 'true',
   setTutorialSeen: () => set(KEYS.tutorialSeen, 'true'),
 
+  getOrdersDisabled: (): boolean => get(KEYS.ordersDisabled) === 'true',
+  setOrdersDisabled: (disabled: boolean) => set(KEYS.ordersDisabled, String(disabled)),
+
   getPayment: (): MrgPaymentInfo => {
     try {
       const raw = JSON.parse(get(KEYS.payment) || '{}');
