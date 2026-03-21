@@ -156,6 +156,14 @@ export const LABELS = {
 
     // Import Tracker
     trackerTitle: "Import Tracker",
+    archives: "Archives",
+    archivesDesc: "Consultez vos anciennes commandes archivées",
+    archiveOrder: "Archiver",
+    unarchiveOrder: "Désarchiver",
+    archived: "Archivé",
+    addOldOrder: "Ajouter une ancienne commande",
+    noArchives: "Aucune commande archivée",
+    navArchives: "Archives",
     totalOrders: "Total commandes",
     totalProfit: "Bénéfice total",
     thisMonth: "Ce mois-ci",
