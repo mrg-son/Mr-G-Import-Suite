@@ -1,13 +1,14 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
 import type { MrgProfil, MrgOrder, MrgDevis, MrgPaymentInfo } from './storage';
+import type { DesignProject, DesignDevis } from './designStorage';
 
 export interface ExportRecord {
   id: string;
   date: string;
   type: 'json' | 'excel';
   filename: string;
-  data: string; // JSON string of the backup
-  size: number; // bytes
+  data: string;
+  size: number;
 }
 
 interface MrgDB extends DBSchema {
@@ -30,6 +31,16 @@ interface MrgDB extends DBSchema {
     value: ExportRecord;
     indexes: { 'by-date': string };
   };
+  design_projects: {
+    key: string;
+    value: DesignProject;
+    indexes: { 'by-date': string };
+  };
+  design_devis: {
+    key: string;
+    value: DesignDevis;
+    indexes: { 'by-date': string };
+  };
 }
 
 let dbInstance: IDBPDatabase<MrgDB> | null = null;
@@ -37,29 +48,31 @@ let dbInstance: IDBPDatabase<MrgDB> | null = null;
 async function getDB(): Promise<IDBPDatabase<MrgDB>> {
   if (dbInstance) return dbInstance;
   
-  dbInstance = await openDB<MrgDB>('mrg-suite', 1, {
-    upgrade(db) {
-      // Settings store (key-value for simple settings)
+  dbInstance = await openDB<MrgDB>('mrg-suite', 2, {
+    upgrade(db, oldVersion) {
       if (!db.objectStoreNames.contains('settings')) {
         db.createObjectStore('settings');
       }
-      
-      // Orders store
       if (!db.objectStoreNames.contains('orders')) {
         const orderStore = db.createObjectStore('orders', { keyPath: 'id' });
         orderStore.createIndex('by-date', 'createdAt');
       }
-      
-      // Devis store
       if (!db.objectStoreNames.contains('devis')) {
         const devisStore = db.createObjectStore('devis', { keyPath: 'id' });
         devisStore.createIndex('by-date', 'createdAt');
       }
-      
-      // Exports history store
       if (!db.objectStoreNames.contains('exports')) {
         const exportStore = db.createObjectStore('exports', { keyPath: 'id' });
         exportStore.createIndex('by-date', 'date');
+      }
+      // v2: Design stores
+      if (!db.objectStoreNames.contains('design_projects')) {
+        const dpStore = db.createObjectStore('design_projects', { keyPath: 'id' });
+        dpStore.createIndex('by-date', 'createdAt');
+      }
+      if (!db.objectStoreNames.contains('design_devis')) {
+        const ddStore = db.createObjectStore('design_devis', { keyPath: 'id' });
+        ddStore.createIndex('by-date', 'createdAt');
       }
     },
   });
