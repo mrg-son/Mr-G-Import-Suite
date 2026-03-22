@@ -218,6 +218,19 @@ export const LABELS = {
     last6Months: "6 derniers mois",
     orderDetail: "Détail commande",
     noClient: "Aucun client trouvé pour",
+
+    // Hub
+    hubWelcome: "Bienvenue,",
+    hubSubtitle: "Que voulez-vous utiliser ?",
+    hubImportTitle: "Mr. G Import",
+    hubImportDesc: "Freight · Devis · Commandes",
+    hubDesignTitle: "Mr. G Design",
+    hubDesignDesc: "Projets · Devis · Paiements",
+    hubSwitch: "Changer d'espace",
+
+    // Design Nav
+    dNavProjects: "Projets",
+    dNavPayments: "Paiements",
   },
   en: {
     welcomeTitle: "Welcome to Mr.G Suite",
@@ -289,7 +302,6 @@ export const LABELS = {
     tarifKg: "Rate per kg",
     useInDevis: "Use in quote",
 
-    // Settings
     settingsTitle: "Settings",
     profileSection: "Profile",
     firstName: "First name",
@@ -321,7 +333,6 @@ export const LABELS = {
     saved: "Saved",
     uploadLogo: "Choose logo",
 
-    // Devis Maker
     devisTitle: "Quote Maker",
     newDevis: "New quote",
     devisNumber: "Quote #",
@@ -368,7 +379,6 @@ export const LABELS = {
     enterWeight: "Enter weight",
     applyCalc: "Apply",
 
-    // Import Tracker
     trackerTitle: "Import Tracker",
     archives: "Archives",
     archivesDesc: "View your archived old orders",
@@ -432,6 +442,19 @@ export const LABELS = {
     last6Months: "Last 6 months",
     orderDetail: "Order detail",
     noClient: "No client found for",
+
+    // Hub
+    hubWelcome: "Welcome,",
+    hubSubtitle: "What would you like to use?",
+    hubImportTitle: "Mr. G Import",
+    hubImportDesc: "Freight · Quotes · Orders",
+    hubDesignTitle: "Mr. G Design",
+    hubDesignDesc: "Projects · Quotes · Payments",
+    hubSwitch: "Switch workspace",
+
+    // Design Nav
+    dNavProjects: "Projects",
+    dNavPayments: "Payments",
   },
 } as const;
 

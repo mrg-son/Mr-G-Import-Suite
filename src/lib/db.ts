@@ -1,13 +1,14 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
 import type { MrgProfil, MrgOrder, MrgDevis, MrgPaymentInfo } from './storage';
+import type { DesignProject, DesignDevis } from './designStorage';
 
 export interface ExportRecord {
   id: string;
   date: string;
   type: 'json' | 'excel';
   filename: string;
-  data: string; // JSON string of the backup
-  size: number; // bytes
+  data: string;
+  size: number;
 }
 
 interface MrgDB extends DBSchema {
@@ -30,6 +31,16 @@ interface MrgDB extends DBSchema {
     value: ExportRecord;
     indexes: { 'by-date': string };
   };
+  design_projects: {
+    key: string;
+    value: DesignProject;
+    indexes: { 'by-date': string };
+  };
+  design_devis: {
+    key: string;
+    value: DesignDevis;
+    indexes: { 'by-date': string };
+  };
 }
 
 let dbInstance: IDBPDatabase<MrgDB> | null = null;
@@ -37,29 +48,31 @@ let dbInstance: IDBPDatabase<MrgDB> | null = null;
 async function getDB(): Promise<IDBPDatabase<MrgDB>> {
   if (dbInstance) return dbInstance;
   
-  dbInstance = await openDB<MrgDB>('mrg-suite', 1, {
-    upgrade(db) {
-      // Settings store (key-value for simple settings)
+  dbInstance = await openDB<MrgDB>('mrg-suite', 2, {
+    upgrade(db, oldVersion) {
       if (!db.objectStoreNames.contains('settings')) {
         db.createObjectStore('settings');
       }
-      
-      // Orders store
       if (!db.objectStoreNames.contains('orders')) {
         const orderStore = db.createObjectStore('orders', { keyPath: 'id' });
         orderStore.createIndex('by-date', 'createdAt');
       }
-      
-      // Devis store
       if (!db.objectStoreNames.contains('devis')) {
         const devisStore = db.createObjectStore('devis', { keyPath: 'id' });
         devisStore.createIndex('by-date', 'createdAt');
       }
-      
-      // Exports history store
       if (!db.objectStoreNames.contains('exports')) {
         const exportStore = db.createObjectStore('exports', { keyPath: 'id' });
         exportStore.createIndex('by-date', 'date');
+      }
+      // v2: Design stores
+      if (!db.objectStoreNames.contains('design_projects')) {
+        const dpStore = db.createObjectStore('design_projects', { keyPath: 'id' });
+        dpStore.createIndex('by-date', 'createdAt');
+      }
+      if (!db.objectStoreNames.contains('design_devis')) {
+        const ddStore = db.createObjectStore('design_devis', { keyPath: 'id' });
+        ddStore.createIndex('by-date', 'createdAt');
       }
     },
   });
@@ -203,17 +216,46 @@ export async function migrateFromLocalStorage(): Promise<boolean> {
   return true;
 }
 
+// ========== Design Projects ==========
+
+export async function getAllDesignProjects(): Promise<DesignProject[]> {
+  const db = await getDB();
+  return db.getAll('design_projects');
+}
+
+export async function setAllDesignProjects(projects: DesignProject[]): Promise<void> {
+  const db = await getDB();
+  const tx = db.transaction('design_projects', 'readwrite');
+  await tx.store.clear();
+  for (const p of projects) { await tx.store.put(p); }
+  await tx.done;
+}
+
+// ========== Design Devis ==========
+
+export async function getAllDesignDevis(): Promise<DesignDevis[]> {
+  const db = await getDB();
+  return db.getAll('design_devis');
+}
+
+export async function setAllDesignDevis(devisList: DesignDevis[]): Promise<void> {
+  const db = await getDB();
+  const tx = db.transaction('design_devis', 'readwrite');
+  await tx.store.clear();
+  for (const d of devisList) { await tx.store.put(d); }
+  await tx.done;
+}
+
 // ========== Reset ==========
 
 export async function resetAllDB(): Promise<void> {
   const db = await getDB();
-  const stores: Array<'settings' | 'orders' | 'devis' | 'exports'> = ['settings', 'orders', 'devis', 'exports'];
+  const stores: Array<'settings' | 'orders' | 'devis' | 'exports' | 'design_projects' | 'design_devis'> = ['settings', 'orders', 'devis', 'exports', 'design_projects', 'design_devis'];
   for (const store of stores) {
     const tx = db.transaction(store, 'readwrite');
     await tx.store.clear();
     await tx.done;
   }
-  // Also clear localStorage remnants
   const lsKeys = ['mrg_user', 'mrg_pin', 'mrg_lang', 'mrg_theme', 'mrg_reminder_days', 'mrg_autosave', 'mrg_orders', 'mrg_devis', 'mrg_profil', 'mrg_tutorial_seen', 'mrg_payment'];
   lsKeys.forEach(k => localStorage.removeItem(k));
 }
