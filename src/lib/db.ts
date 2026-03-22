@@ -216,17 +216,46 @@ export async function migrateFromLocalStorage(): Promise<boolean> {
   return true;
 }
 
+// ========== Design Projects ==========
+
+export async function getAllDesignProjects(): Promise<DesignProject[]> {
+  const db = await getDB();
+  return db.getAll('design_projects');
+}
+
+export async function setAllDesignProjects(projects: DesignProject[]): Promise<void> {
+  const db = await getDB();
+  const tx = db.transaction('design_projects', 'readwrite');
+  await tx.store.clear();
+  for (const p of projects) { await tx.store.put(p); }
+  await tx.done;
+}
+
+// ========== Design Devis ==========
+
+export async function getAllDesignDevis(): Promise<DesignDevis[]> {
+  const db = await getDB();
+  return db.getAll('design_devis');
+}
+
+export async function setAllDesignDevis(devisList: DesignDevis[]): Promise<void> {
+  const db = await getDB();
+  const tx = db.transaction('design_devis', 'readwrite');
+  await tx.store.clear();
+  for (const d of devisList) { await tx.store.put(d); }
+  await tx.done;
+}
+
 // ========== Reset ==========
 
 export async function resetAllDB(): Promise<void> {
   const db = await getDB();
-  const stores: Array<'settings' | 'orders' | 'devis' | 'exports'> = ['settings', 'orders', 'devis', 'exports'];
+  const stores: Array<'settings' | 'orders' | 'devis' | 'exports' | 'design_projects' | 'design_devis'> = ['settings', 'orders', 'devis', 'exports', 'design_projects', 'design_devis'];
   for (const store of stores) {
     const tx = db.transaction(store, 'readwrite');
     await tx.store.clear();
     await tx.done;
   }
-  // Also clear localStorage remnants
   const lsKeys = ['mrg_user', 'mrg_pin', 'mrg_lang', 'mrg_theme', 'mrg_reminder_days', 'mrg_autosave', 'mrg_orders', 'mrg_devis', 'mrg_profil', 'mrg_tutorial_seen', 'mrg_payment'];
   lsKeys.forEach(k => localStorage.removeItem(k));
 }
