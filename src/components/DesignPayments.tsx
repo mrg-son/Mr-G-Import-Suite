@@ -91,7 +91,9 @@ const DesignPayments = ({ lang }: Props) => {
           {filtered.map((p, i) => {
             const status = getPaymentStatus(p);
             const badge = paymentBadge[status];
-            const solde = Math.max(0, p.prix - p.acompte);
+            const imp = p.impression;
+            const fraisImpression = imp?.enabled && !imp.inclusDansPrix ? imp.totalImpression : 0;
+            const solde = Math.max(0, p.prix + fraisImpression - p.acompte);
             return (
               <motion.div key={p.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
                 className="glass-card p-4 md:grid md:grid-cols-12 md:gap-2 md:items-center"
@@ -100,8 +102,13 @@ const DesignPayments = ({ lang }: Props) => {
                   <p className="font-satoshi font-medium text-sm">{p.client}</p>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium md:hidden ${badge.color}`}>{badge.label[lang]}</span>
                 </div>
-                <div className="col-span-2 text-sm text-muted-foreground">{typeLabel[p.type]?.[lang]}</div>
-                <div className="col-span-2 font-clash font-bold text-sm">{p.prix.toLocaleString()} {p.devise}</div>
+                <div className="col-span-2 text-sm text-muted-foreground">{getTypeLabel(p, lang)}</div>
+                <div className="col-span-2 font-clash font-bold text-sm">
+                  {p.prix.toLocaleString()} {p.devise}
+                  {fraisImpression > 0 && (
+                    <span className="block text-xs text-purple-400 font-normal flex items-center gap-1"><Printer size={10} /> +{fraisImpression.toLocaleString()}</span>
+                  )}
+                </div>
                 <div className="col-span-2 text-sm text-emerald-400">{p.acompte.toLocaleString()} {p.devise}</div>
                 <div className={`col-span-2 font-clash font-bold text-sm ${solde > 0 ? 'text-or' : 'text-emerald-400'}`}>
                   {solde.toLocaleString()} {p.devise}
