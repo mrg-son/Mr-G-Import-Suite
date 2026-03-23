@@ -34,13 +34,6 @@ const DesignPayments = ({ lang }: Props) => {
     paye: { label: { fr: 'Tout payé', en: 'Fully paid' }, color: 'bg-emerald-500/15 text-emerald-400' },
   };
 
-  const typeLabel: Record<string, Record<string, string>> = {
-    'logo-branding': { fr: 'Logo / Branding', en: 'Logo / Branding' },
-    'affiche-flyer': { fr: 'Affiche / Flyer', en: 'Poster / Flyer' },
-    'identite-visuelle': { fr: 'Identité visuelle', en: 'Visual identity' },
-    'reseaux-sociaux': { fr: 'Réseaux sociaux', en: 'Social media' },
-    'autre': { fr: 'Autre', en: 'Other' },
-  };
 
   return (
     <div className="max-w-5xl mx-auto px-4 pt-24 md:pt-20 pb-8">
