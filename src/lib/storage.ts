@@ -166,10 +166,9 @@ export const storage = {
   },
   setOrders: (o: MrgOrder[]) => {
     ordersCache = o;
-    // Async write to IDB
     db.setAllOrders(o).catch(() => {});
-    // localStorage fallback
     try { localStorage.setItem(KEYS.orders, JSON.stringify(o)); } catch {}
+    triggerAutoBackup();
   },
 
   getDevis: (): MrgDevis[] => {
