@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { t } from '@/lib/i18n';
-import { designStorage, DesignProject } from '@/lib/designStorage';
+import { designStorage } from '@/lib/designStorage';
+import { getTypeLabel } from '@/components/DesignProjects';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Briefcase, DollarSign, Clock, CheckCircle } from 'lucide-react';
 
