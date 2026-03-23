@@ -75,6 +75,7 @@ export const designStorage = {
   setProjects: (p: DesignProject[]) => {
     projectsCache = p;
     db.setAllDesignProjects(p).catch(() => {});
+    triggerAutoBackup();
   },
 
   getDevis: (): DesignDevis[] => {
@@ -83,5 +84,6 @@ export const designStorage = {
   setDevis: (d: DesignDevis[]) => {
     devisCache = d;
     db.setAllDesignDevis(d).catch(() => {});
+    triggerAutoBackup();
   },
 };

@@ -180,6 +180,7 @@ export const storage = {
     devisCache = d;
     db.setAllDevis(d).catch(() => {});
     try { localStorage.setItem(KEYS.devis, JSON.stringify(d)); } catch {}
+    triggerAutoBackup();
   },
 
   isTutorialSeen: (): boolean => get(KEYS.tutorialSeen) === 'true',
