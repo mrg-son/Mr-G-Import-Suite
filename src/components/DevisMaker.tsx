@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { t } from '@/lib/i18n';
 import { storage, MrgDevis, DevisLigne, MrgOrder } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
+import { fileNames } from '@/lib/fileNaming';
 import { Plus, Trash2, FileText, ArrowLeft, Download, Eye, Image, RefreshCw, X, Ship, Plane, Calculator, ZoomIn, Crop } from 'lucide-react';
 
 interface DevisMakerProps {
