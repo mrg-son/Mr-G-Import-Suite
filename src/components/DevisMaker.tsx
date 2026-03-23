@@ -371,7 +371,7 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
       const { default: html2canvas } = await import('html2canvas');
       const canvas = await html2canvas(el);
       const link = document.createElement('a');
-      link.download = `devis-${currentDevis.numero}.png`;
+      link.download = fileNames.importDevisPNG(currentDevis.client, currentDevis.numero);
       link.href = canvas.toDataURL();
       link.click();
     } catch {

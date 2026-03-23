@@ -107,7 +107,7 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
     })));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Commandes');
-    const filename = `mrg-suite-orders-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    const filename = fileNames.importExcel();
     XLSX.writeFile(wb, filename);
 
     // Save metadata to history (not the binary)
