@@ -110,7 +110,9 @@ const DesignDevisMaker = ({ lang, onNavigate }: Props) => {
     if (!exportRef.current) return;
     const canvas = await html2canvas(exportRef.current, { backgroundColor: '#111', scale: 2 });
     const link = document.createElement('a');
-    link.download = `devis-design-${form.numero}.${type === 'pdf' ? 'png' : 'png'}`;
+    link.download = type === 'png'
+      ? fileNames.designDevisPNG(form.client, form.numero)
+      : fileNames.designDevisPDF(form.client, form.numero);
     link.href = canvas.toDataURL('image/png');
     link.click();
   };
