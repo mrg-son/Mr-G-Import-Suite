@@ -2,7 +2,8 @@ import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { t } from '@/lib/i18n';
 import { designStorage } from '@/lib/designStorage';
-import { Phone, DollarSign, AlertCircle } from 'lucide-react';
+import { getTypeLabel } from '@/components/DesignProjects';
+import { Phone, DollarSign, AlertCircle, Printer } from 'lucide-react';
 
 interface Props { lang: 'fr' | 'en'; }
 
