@@ -6,6 +6,7 @@ import { storage } from '@/lib/storage';
 import { Plus, Trash2, ArrowLeft, FileText, Image as ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
+import { fileNames } from '@/lib/fileNaming';
 
 interface Props { lang: 'fr' | 'en'; onNavigate: (tab: string) => void; }
 
@@ -109,7 +110,9 @@ const DesignDevisMaker = ({ lang, onNavigate }: Props) => {
     if (!exportRef.current) return;
     const canvas = await html2canvas(exportRef.current, { backgroundColor: '#111', scale: 2 });
     const link = document.createElement('a');
-    link.download = `devis-design-${form.numero}.${type === 'pdf' ? 'png' : 'png'}`;
+    link.download = type === 'png'
+      ? fileNames.designDevisPNG(form.client, form.numero)
+      : fileNames.designDevisPDF(form.client, form.numero);
     link.href = canvas.toDataURL('image/png');
     link.click();
   };

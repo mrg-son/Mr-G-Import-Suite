@@ -2,6 +2,7 @@
 // On init, we load from IndexedDB into memory. Writes go to both cache and IDB.
 
 import * as db from './db';
+import { triggerAutoBackup } from './autoBackup';
 
 export interface MrgProfil {
   nom: string;
@@ -165,10 +166,9 @@ export const storage = {
   },
   setOrders: (o: MrgOrder[]) => {
     ordersCache = o;
-    // Async write to IDB
     db.setAllOrders(o).catch(() => {});
-    // localStorage fallback
     try { localStorage.setItem(KEYS.orders, JSON.stringify(o)); } catch {}
+    triggerAutoBackup();
   },
 
   getDevis: (): MrgDevis[] => {
@@ -180,6 +180,7 @@ export const storage = {
     devisCache = d;
     db.setAllDevis(d).catch(() => {});
     try { localStorage.setItem(KEYS.devis, JSON.stringify(d)); } catch {}
+    triggerAutoBackup();
   },
 
   isTutorialSeen: (): boolean => get(KEYS.tutorialSeen) === 'true',

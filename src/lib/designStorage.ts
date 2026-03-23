@@ -1,5 +1,17 @@
 // Mr.G Suite — Design Storage Layer
 import * as db from './db';
+import { triggerAutoBackup } from './autoBackup';
+
+export interface PrintSection {
+  enabled: boolean;
+  type: string;
+  typeCustom?: string;
+  quantite: number;
+  prixUnitaire: number;
+  devise: string;
+  totalImpression: number;
+  inclusDansPrix: boolean;
+}
 
 export interface DesignProject {
   id: string;
@@ -17,6 +29,7 @@ export interface DesignProject {
   notes: string;
   createdAt: string;
   archived?: boolean;
+  impression?: PrintSection;
 }
 
 export interface DesignDevisLigne {
@@ -62,6 +75,7 @@ export const designStorage = {
   setProjects: (p: DesignProject[]) => {
     projectsCache = p;
     db.setAllDesignProjects(p).catch(() => {});
+    triggerAutoBackup();
   },
 
   getDevis: (): DesignDevis[] => {
@@ -70,5 +84,6 @@ export const designStorage = {
   setDevis: (d: DesignDevis[]) => {
     devisCache = d;
     db.setAllDesignDevis(d).catch(() => {});
+    triggerAutoBackup();
   },
 };

@@ -4,6 +4,7 @@ import { t } from '@/lib/i18n';
 import { storage, PaymentMethod } from '@/lib/storage';
 import { addExport, getAllExports, deleteExport, clearExports, type ExportRecord } from '@/lib/db';
 import { useToast } from '@/hooks/use-toast';
+import { fileNames } from '@/lib/fileNaming';
 import { User, Shield, Download, Upload, ToggleLeft, ToggleRight, AlertTriangle, Save, Image, Wallet, Plus, Trash2, X, Clock, FileJson, FileSpreadsheet } from 'lucide-react';
 
 interface SettingsModuleProps {
@@ -77,14 +78,13 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
       reminderDays: storage.getReminderDays(), autosave: storage.getAutosave(),
     };
     const jsonStr = JSON.stringify(data, null, 2);
-    const filename = `mrg-suite-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    const filename = fileNames.backup();
     const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url;
     a.download = filename;
     a.click(); URL.revokeObjectURL(url);
 
-    // Save to IndexedDB history
     await addExport({
       id: Math.random().toString(36).slice(2, 10),
       date: new Date().toISOString(),
@@ -107,7 +107,7 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
     })));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Commandes');
-    const filename = `mrg-suite-orders-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    const filename = fileNames.importExcel();
     XLSX.writeFile(wb, filename);
 
     // Save metadata to history (not the binary)

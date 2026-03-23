@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { t } from '@/lib/i18n';
-import { designStorage, DesignProject } from '@/lib/designStorage';
+import { designStorage } from '@/lib/designStorage';
+import { getTypeLabel } from '@/components/DesignProjects';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Briefcase, DollarSign, Clock, CheckCircle } from 'lucide-react';
 
@@ -101,7 +102,7 @@ const DesignDashboard = ({ lang, onNavigate }: Props) => {
               <div key={p.id} className="flex items-center justify-between py-2 border-b border-border/30 last:border-0">
                 <div>
                   <p className="font-satoshi font-medium text-sm">{p.client}</p>
-                  <p className="text-xs text-muted-foreground">{p.type.replace(/-/g, ' ')}</p>
+                  <p className="text-xs text-muted-foreground">{getTypeLabel(p, lang)}</p>
                 </div>
                 <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColor[p.statut]}`}>
                   {statusLabel[p.statut]}

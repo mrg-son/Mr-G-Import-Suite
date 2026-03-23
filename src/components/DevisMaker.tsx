@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { t } from '@/lib/i18n';
 import { storage, MrgDevis, DevisLigne, MrgOrder } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
+import { fileNames } from '@/lib/fileNaming';
 import { Plus, Trash2, FileText, ArrowLeft, Download, Eye, Image, RefreshCw, X, Ship, Plane, Calculator, ZoomIn, Crop } from 'lucide-react';
 
 interface DevisMakerProps {
@@ -370,7 +371,7 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
       const { default: html2canvas } = await import('html2canvas');
       const canvas = await html2canvas(el);
       const link = document.createElement('a');
-      link.download = `devis-${currentDevis.numero}.png`;
+      link.download = fileNames.importDevisPNG(currentDevis.client, currentDevis.numero);
       link.href = canvas.toDataURL();
       link.click();
     } catch {
