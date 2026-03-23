@@ -2,6 +2,7 @@
 // On init, we load from IndexedDB into memory. Writes go to both cache and IDB.
 
 import * as db from './db';
+import { triggerAutoBackup } from './autoBackup';
 
 export interface MrgProfil {
   nom: string;
