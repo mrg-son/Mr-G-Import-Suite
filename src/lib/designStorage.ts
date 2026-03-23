@@ -1,6 +1,17 @@
 // Mr.G Suite — Design Storage Layer
 import * as db from './db';
 
+export interface PrintSection {
+  enabled: boolean;
+  type: string;
+  typeCustom?: string;
+  quantite: number;
+  prixUnitaire: number;
+  devise: string;
+  totalImpression: number;
+  inclusDansPrix: boolean;
+}
+
 export interface DesignProject {
   id: string;
   client: string;
@@ -17,6 +28,7 @@ export interface DesignProject {
   notes: string;
   createdAt: string;
   archived?: boolean;
+  impression?: PrintSection;
 }
 
 export interface DesignDevisLigne {
