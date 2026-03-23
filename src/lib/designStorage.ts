@@ -1,5 +1,6 @@
 // Mr.G Suite — Design Storage Layer
 import * as db from './db';
+import { triggerAutoBackup } from './autoBackup';
 
 export interface PrintSection {
   enabled: boolean;
