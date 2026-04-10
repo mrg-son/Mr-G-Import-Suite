@@ -1,6 +1,7 @@
 // Auto-backup system — triggers on every data save when autosave is enabled
 import { storage } from './storage';
 import { designStorage } from './designStorage';
+import { formationStorage } from './formationStorage';
 import { addExport } from './db';
 import { fileNames } from './fileNaming';
 
@@ -20,6 +21,7 @@ export function triggerAutoBackup() {
         devis: storage.getDevis(),
         designProjects: designStorage.getProjects(),
         designDevis: designStorage.getDevis(),
+        formations: formationStorage.getFormations(),
         lang: storage.getLang(),
         theme: storage.getTheme(),
         reminderDays: storage.getReminderDays(),

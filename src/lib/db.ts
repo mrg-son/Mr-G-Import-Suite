@@ -11,6 +11,24 @@ export interface ExportRecord {
   size: number;
 }
 
+export interface MrgFormation {
+  id: string;
+  client: string;
+  phone: string;
+  objectif: string;
+  plateformes: string[];
+  plateformesCustom: string;
+  dateFormation: string;
+  duree: number;
+  prix: number;
+  devise: string;
+  acompte: number;
+  statut: 'planifiee' | 'en-cours' | 'terminee' | 'payee';
+  notes: string;
+  createdAt: string;
+  archived?: boolean;
+}
+
 interface MrgDB extends DBSchema {
   settings: {
     key: string;
@@ -41,6 +59,11 @@ interface MrgDB extends DBSchema {
     value: DesignDevis;
     indexes: { 'by-date': string };
   };
+  formations: {
+    key: string;
+    value: MrgFormation;
+    indexes: { 'by-date': string };
+  };
 }
 
 let dbInstance: IDBPDatabase<MrgDB> | null = null;
@@ -48,7 +71,7 @@ let dbInstance: IDBPDatabase<MrgDB> | null = null;
 async function getDB(): Promise<IDBPDatabase<MrgDB>> {
   if (dbInstance) return dbInstance;
   
-  dbInstance = await openDB<MrgDB>('mrg-suite', 2, {
+  dbInstance = await openDB<MrgDB>('mrg-suite', 3, {
     upgrade(db, oldVersion) {
       if (!db.objectStoreNames.contains('settings')) {
         db.createObjectStore('settings');
@@ -65,7 +88,6 @@ async function getDB(): Promise<IDBPDatabase<MrgDB>> {
         const exportStore = db.createObjectStore('exports', { keyPath: 'id' });
         exportStore.createIndex('by-date', 'date');
       }
-      // v2: Design stores
       if (!db.objectStoreNames.contains('design_projects')) {
         const dpStore = db.createObjectStore('design_projects', { keyPath: 'id' });
         dpStore.createIndex('by-date', 'createdAt');
@@ -73,6 +95,11 @@ async function getDB(): Promise<IDBPDatabase<MrgDB>> {
       if (!db.objectStoreNames.contains('design_devis')) {
         const ddStore = db.createObjectStore('design_devis', { keyPath: 'id' });
         ddStore.createIndex('by-date', 'createdAt');
+      }
+      // v3: Formations
+      if (!db.objectStoreNames.contains('formations')) {
+        const fStore = db.createObjectStore('formations', { keyPath: 'id' });
+        fStore.createIndex('by-date', 'createdAt');
       }
     },
   });
@@ -246,11 +273,27 @@ export async function setAllDesignDevis(devisList: DesignDevis[]): Promise<void>
   await tx.done;
 }
 
+
+// ========== Formations ==========
+
+export async function getAllFormations(): Promise<MrgFormation[]> {
+  const db = await getDB();
+  return db.getAll('formations');
+}
+
+export async function setAllFormations(formations: MrgFormation[]): Promise<void> {
+  const db = await getDB();
+  const tx = db.transaction('formations', 'readwrite');
+  await tx.store.clear();
+  for (const f of formations) { await tx.store.put(f); }
+  await tx.done;
+}
+
 // ========== Reset ==========
 
 export async function resetAllDB(): Promise<void> {
   const db = await getDB();
-  const stores: Array<'settings' | 'orders' | 'devis' | 'exports' | 'design_projects' | 'design_devis'> = ['settings', 'orders', 'devis', 'exports', 'design_projects', 'design_devis'];
+  const stores: Array<'settings' | 'orders' | 'devis' | 'exports' | 'design_projects' | 'design_devis' | 'formations'> = ['settings', 'orders', 'devis', 'exports', 'design_projects', 'design_devis', 'formations'];
   for (const store of stores) {
     const tx = db.transaction(store, 'readwrite');
     await tx.store.clear();

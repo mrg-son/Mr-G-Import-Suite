@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useAppState } from '@/hooks/useAppState';
 import { initDesignStorage } from '@/lib/designStorage';
+import { initFormationStorage } from '@/lib/formationStorage';
 import OceanBackground from '@/components/OceanBackground';
 import Onboarding from '@/components/Onboarding';
 import PinScreen from '@/components/PinScreen';
@@ -15,6 +16,7 @@ import DevisMaker from '@/components/DevisMaker';
 import ImportTracker from '@/components/ImportTracker';
 import SettingsModule from '@/components/SettingsModule';
 import ArchivesModule from '@/components/ArchivesModule';
+import FormationsModule from '@/components/FormationsModule';
 import DesignDashboard from '@/components/DesignDashboard';
 import DesignProjects from '@/components/DesignProjects';
 import DesignDevisMaker from '@/components/DesignDevisMaker';
@@ -35,7 +37,7 @@ const Index = () => {
   const [tabKey, setTabKey] = useState(0);
 
   // Init design storage
-  useEffect(() => { initDesignStorage(); }, []);
+  useEffect(() => { initDesignStorage(); initFormationStorage(); }, []);
 
   const handleTabChange = (tab: string, orderId?: string) => {
     setEditOrderId(orderId || null);
@@ -131,6 +133,11 @@ const Index = () => {
           {activeTab === 'orders' && (
             <ModuleTransition key={`orders-${tabKey}`} type="orders">
               <ImportTracker lang={lang} editOrderId={editOrderId} />
+            </ModuleTransition>
+          )}
+          {activeTab === 'formations' && (
+            <ModuleTransition key={`formations-${tabKey}`} type="orders">
+              <FormationsModule lang={lang} />
             </ModuleTransition>
           )}
           {activeTab === 'archives' && (

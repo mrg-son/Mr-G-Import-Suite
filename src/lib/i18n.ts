@@ -231,6 +231,11 @@ export const LABELS = {
     // Design Nav
     dNavProjects: "Projets",
     dNavPayments: "Paiements",
+
+    // Formations
+    navFormations: "Formations",
+    formationsTitle: "Formations",
+    formationsDesc: "Gérez vos sessions de formation import Chine",
   },
   en: {
     welcomeTitle: "Welcome to Mr.G Suite",
@@ -455,6 +460,11 @@ export const LABELS = {
     // Design Nav
     dNavProjects: "Projects",
     dNavPayments: "Payments",
+
+    // Formations
+    navFormations: "Training",
+    formationsTitle: "Training",
+    formationsDesc: "Manage your China import training sessions",
   },
 } as const;
 

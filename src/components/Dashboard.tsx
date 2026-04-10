@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { t } from '@/lib/i18n';
 import { storage } from '@/lib/storage';
-import { Ship, Plane, FileText, Package, Settings } from 'lucide-react';
+import { Ship, Plane, FileText, Package, Settings, GraduationCap } from 'lucide-react';
 
 interface DashboardProps {
   lang: 'fr' | 'en';
@@ -12,6 +12,7 @@ const allModules = [
   { key: 'freight', labelKey: 'freightCalc' as const, descKey: 'freightDesc' as const, icon: Ship, color: 'bg-primary/15 text-primary', tab: 'freight' },
   { key: 'devis', labelKey: 'devisMaker' as const, descKey: 'devisDesc' as const, icon: FileText, color: 'bg-or/15 text-or', tab: 'devis' },
   { key: 'tracker', labelKey: 'importTracker' as const, descKey: 'trackerDesc' as const, icon: Package, color: 'bg-bleu-mer/15 text-bleu-mer', tab: 'orders' },
+  { key: 'formations', labelKey: 'formationsTitle' as const, descKey: 'formationsDesc' as const, icon: GraduationCap, color: 'bg-or/15 text-or', tab: 'formations' },
   { key: 'settings', labelKey: 'settings' as const, descKey: 'settingsDesc' as const, icon: Settings, color: 'bg-muted text-muted-foreground', tab: 'settings' },
 ];
 
