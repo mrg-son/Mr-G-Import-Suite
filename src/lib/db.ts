@@ -273,11 +273,27 @@ export async function setAllDesignDevis(devisList: DesignDevis[]): Promise<void>
   await tx.done;
 }
 
+
+// ========== Formations ==========
+
+export async function getAllFormations(): Promise<MrgFormation[]> {
+  const db = await getDB();
+  return db.getAll('formations');
+}
+
+export async function setAllFormations(formations: MrgFormation[]): Promise<void> {
+  const db = await getDB();
+  const tx = db.transaction('formations', 'readwrite');
+  await tx.store.clear();
+  for (const f of formations) { await tx.store.put(f); }
+  await tx.done;
+}
+
 // ========== Reset ==========
 
 export async function resetAllDB(): Promise<void> {
   const db = await getDB();
-  const stores: Array<'settings' | 'orders' | 'devis' | 'exports' | 'design_projects' | 'design_devis'> = ['settings', 'orders', 'devis', 'exports', 'design_projects', 'design_devis'];
+  const stores: Array<'settings' | 'orders' | 'devis' | 'exports' | 'design_projects' | 'design_devis' | 'formations'> = ['settings', 'orders', 'devis', 'exports', 'design_projects', 'design_devis', 'formations'];
   for (const store of stores) {
     const tx = db.transaction(store, 'readwrite');
     await tx.store.clear();
