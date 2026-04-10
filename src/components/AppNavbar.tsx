@@ -13,12 +13,13 @@ interface AppNavbarProps {
   onSwitchApp: () => void;
 }
 
-const allTabs = ['dashboard', 'freight', 'devis', 'orders', 'archives', 'settings'] as const;
+const allTabs = ['dashboard', 'freight', 'devis', 'orders', 'formations', 'archives', 'settings'] as const;
 const tabLabelKeys = {
   dashboard: 'navDashboard',
   freight: 'navFreight',
   devis: 'navDevis',
   orders: 'navOrders',
+  formations: 'navFormations',
   archives: 'navArchives',
   settings: 'navSettings',
 } as const;

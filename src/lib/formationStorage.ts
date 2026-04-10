@@ -1,8 +1,9 @@
 // Mr.G Suite — Formation (Training) storage layer
 import * as db from './db';
+import type { MrgFormation as MrgFormationType } from './db';
 import { triggerAutoBackup } from './autoBackup';
 
-export interface MrgFormation {
+export type MrgFormation = MrgFormationType;
   id: string;
   client: string;
   phone: string;
