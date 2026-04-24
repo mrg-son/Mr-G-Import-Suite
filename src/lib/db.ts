@@ -132,6 +132,11 @@ async function getDB(): Promise<IDBPDatabase<MrgDB>> {
         const fStore = db.createObjectStore('formations', { keyPath: 'id' });
         fStore.createIndex('by-date', 'createdAt');
       }
+      // v4: Receipts
+      if (!db.objectStoreNames.contains('receipts')) {
+        const rStore = db.createObjectStore('receipts', { keyPath: 'id' });
+        rStore.createIndex('by-date', 'createdAt');
+      }
     },
   });
   
