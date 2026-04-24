@@ -29,6 +29,32 @@ export interface MrgFormation {
   archived?: boolean;
 }
 
+export type ReceiptSource = 'order' | 'design-project' | 'formation' | 'devis' | 'design-devis' | 'manual';
+export type PaymentMode = 'cash' | 'mobile-money' | 'virement' | 'carte' | 'autre';
+export type ReceiptType = 'acompte' | 'solde' | 'total' | 'partiel';
+
+export interface MrgReceipt {
+  id: string;
+  numero: string;
+  date: string;
+  client: string;
+  clientPhone: string;
+  source: ReceiptSource;
+  sourceId?: string;
+  sourceLabel: string;
+  montant: number;
+  devise: string;
+  modePaiement: PaymentMode;
+  modePaiementCustom?: string;
+  type: ReceiptType;
+  totalAttendu: number;
+  totalDejaPaye: number;
+  resteAPayer: number;
+  notes: string;
+  createdAt: string;
+  archived?: boolean;
+}
+
 interface MrgDB extends DBSchema {
   settings: {
     key: string;
