@@ -23,6 +23,7 @@ export function triggerAutoBackup() {
         designProjects: designStorage.getProjects(),
         designDevis: designStorage.getDevis(),
         formations: formationStorage.getFormations(),
+        receipts: receiptStorage.getReceipts(),
         lang: storage.getLang(),
         theme: storage.getTheme(),
         reminderDays: storage.getReminderDays(),
