@@ -12,11 +12,12 @@ interface DesignNavbarProps {
   onSwitchApp: () => void;
 }
 
-const tabs = ['design-dashboard', 'design-projects', 'design-devis', 'design-payments'] as const;
+const tabs = ['design-dashboard', 'design-projects', 'design-devis', 'design-receipts', 'design-payments'] as const;
 const tabLabelKeys = {
   'design-dashboard': 'navDashboard',
   'design-projects': 'dNavProjects',
   'design-devis': 'navDevis',
+  'design-receipts': 'navReceipts',
   'design-payments': 'dNavPayments',
 } as const;
 
