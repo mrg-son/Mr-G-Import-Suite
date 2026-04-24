@@ -90,6 +90,11 @@ interface MrgDB extends DBSchema {
     value: MrgFormation;
     indexes: { 'by-date': string };
   };
+  receipts: {
+    key: string;
+    value: MrgReceipt;
+    indexes: { 'by-date': string };
+  };
 }
 
 let dbInstance: IDBPDatabase<MrgDB> | null = null;
@@ -97,7 +102,7 @@ let dbInstance: IDBPDatabase<MrgDB> | null = null;
 async function getDB(): Promise<IDBPDatabase<MrgDB>> {
   if (dbInstance) return dbInstance;
   
-  dbInstance = await openDB<MrgDB>('mrg-suite', 3, {
+  dbInstance = await openDB<MrgDB>('mrg-suite', 4, {
     upgrade(db, oldVersion) {
       if (!db.objectStoreNames.contains('settings')) {
         db.createObjectStore('settings');
