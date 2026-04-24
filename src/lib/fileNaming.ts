@@ -30,4 +30,10 @@ export const fileNames = {
 
   importExcel: () =>
     `MRG-IMPORT_COMMANDES_${dateStr()}.xlsx`,
+
+  receiptPNG: (client: string, numero: string) =>
+    `MRG-SUITE_RECU_${sanitize(client)}_${numero.replace('#', '')}__${dateStr()}.png`,
+
+  receiptPDF: (client: string, numero: string) =>
+    `MRG-SUITE_RECU_${sanitize(client)}_${numero.replace('#', '')}__${dateStr()}.pdf`,
 };

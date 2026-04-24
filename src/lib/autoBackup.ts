@@ -2,6 +2,7 @@
 import { storage } from './storage';
 import { designStorage } from './designStorage';
 import { formationStorage } from './formationStorage';
+import { receiptStorage } from './receiptStorage';
 import { addExport } from './db';
 import { fileNames } from './fileNaming';
 
@@ -22,6 +23,7 @@ export function triggerAutoBackup() {
         designProjects: designStorage.getProjects(),
         designDevis: designStorage.getDevis(),
         formations: formationStorage.getFormations(),
+        receipts: receiptStorage.getReceipts(),
         lang: storage.getLang(),
         theme: storage.getTheme(),
         reminderDays: storage.getReminderDays(),

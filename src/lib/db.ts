@@ -29,6 +29,32 @@ export interface MrgFormation {
   archived?: boolean;
 }
 
+export type ReceiptSource = 'order' | 'design-project' | 'formation' | 'devis' | 'design-devis' | 'manual';
+export type PaymentMode = 'cash' | 'mobile-money' | 'virement' | 'carte' | 'autre';
+export type ReceiptType = 'acompte' | 'solde' | 'total' | 'partiel';
+
+export interface MrgReceipt {
+  id: string;
+  numero: string;
+  date: string;
+  client: string;
+  clientPhone: string;
+  source: ReceiptSource;
+  sourceId?: string;
+  sourceLabel: string;
+  montant: number;
+  devise: string;
+  modePaiement: PaymentMode;
+  modePaiementCustom?: string;
+  type: ReceiptType;
+  totalAttendu: number;
+  totalDejaPaye: number;
+  resteAPayer: number;
+  notes: string;
+  createdAt: string;
+  archived?: boolean;
+}
+
 interface MrgDB extends DBSchema {
   settings: {
     key: string;
@@ -64,6 +90,11 @@ interface MrgDB extends DBSchema {
     value: MrgFormation;
     indexes: { 'by-date': string };
   };
+  receipts: {
+    key: string;
+    value: MrgReceipt;
+    indexes: { 'by-date': string };
+  };
 }
 
 let dbInstance: IDBPDatabase<MrgDB> | null = null;
@@ -71,7 +102,7 @@ let dbInstance: IDBPDatabase<MrgDB> | null = null;
 async function getDB(): Promise<IDBPDatabase<MrgDB>> {
   if (dbInstance) return dbInstance;
   
-  dbInstance = await openDB<MrgDB>('mrg-suite', 3, {
+  dbInstance = await openDB<MrgDB>('mrg-suite', 4, {
     upgrade(db, oldVersion) {
       if (!db.objectStoreNames.contains('settings')) {
         db.createObjectStore('settings');
@@ -100,6 +131,11 @@ async function getDB(): Promise<IDBPDatabase<MrgDB>> {
       if (!db.objectStoreNames.contains('formations')) {
         const fStore = db.createObjectStore('formations', { keyPath: 'id' });
         fStore.createIndex('by-date', 'createdAt');
+      }
+      // v4: Receipts
+      if (!db.objectStoreNames.contains('receipts')) {
+        const rStore = db.createObjectStore('receipts', { keyPath: 'id' });
+        rStore.createIndex('by-date', 'createdAt');
       }
     },
   });
@@ -289,11 +325,26 @@ export async function setAllFormations(formations: MrgFormation[]): Promise<void
   await tx.done;
 }
 
+// ========== Receipts ==========
+
+export async function getAllReceipts(): Promise<MrgReceipt[]> {
+  const db = await getDB();
+  return db.getAll('receipts');
+}
+
+export async function setAllReceipts(receipts: MrgReceipt[]): Promise<void> {
+  const db = await getDB();
+  const tx = db.transaction('receipts', 'readwrite');
+  await tx.store.clear();
+  for (const r of receipts) { await tx.store.put(r); }
+  await tx.done;
+}
+
 // ========== Reset ==========
 
 export async function resetAllDB(): Promise<void> {
   const db = await getDB();
-  const stores: Array<'settings' | 'orders' | 'devis' | 'exports' | 'design_projects' | 'design_devis' | 'formations'> = ['settings', 'orders', 'devis', 'exports', 'design_projects', 'design_devis', 'formations'];
+  const stores: Array<'settings' | 'orders' | 'devis' | 'exports' | 'design_projects' | 'design_devis' | 'formations' | 'receipts'> = ['settings', 'orders', 'devis', 'exports', 'design_projects', 'design_devis', 'formations', 'receipts'];
   for (const store of stores) {
     const tx = db.transaction(store, 'readwrite');
     await tx.store.clear();

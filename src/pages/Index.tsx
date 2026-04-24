@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { useAppState } from '@/hooks/useAppState';
 import { initDesignStorage } from '@/lib/designStorage';
 import { initFormationStorage } from '@/lib/formationStorage';
+import { initReceiptStorage } from '@/lib/receiptStorage';
 import OceanBackground from '@/components/OceanBackground';
 import Onboarding from '@/components/Onboarding';
 import PinScreen from '@/components/PinScreen';
@@ -22,6 +23,7 @@ import DesignProjects from '@/components/DesignProjects';
 import DesignDevisMaker from '@/components/DesignDevisMaker';
 import DesignPayments from '@/components/DesignPayments';
 import ModuleTransition from '@/components/ModuleTransition';
+import ReceiptMaker from '@/components/ReceiptMaker';
 
 const Index = () => {
   const {
@@ -37,7 +39,7 @@ const Index = () => {
   const [tabKey, setTabKey] = useState(0);
 
   // Init design storage
-  useEffect(() => { initDesignStorage(); initFormationStorage(); }, []);
+  useEffect(() => { initDesignStorage(); initFormationStorage(); initReceiptStorage(); }, []);
 
   const handleTabChange = (tab: string, orderId?: string) => {
     setEditOrderId(orderId || null);
@@ -90,6 +92,11 @@ const Index = () => {
                 <DesignDevisMaker lang={lang} onNavigate={handleTabChange} />
               </ModuleTransition>
             )}
+            {activeTab === 'design-receipts' && (
+              <ModuleTransition key={`drec-${tabKey}`} type="settings">
+                <ReceiptMaker lang={lang} scope="design" />
+              </ModuleTransition>
+            )}
             {activeTab === 'design-payments' && (
               <ModuleTransition key={`pay-${tabKey}`} type="settings">
                 <DesignPayments lang={lang} />
@@ -138,6 +145,11 @@ const Index = () => {
           {activeTab === 'formations' && (
             <ModuleTransition key={`formations-${tabKey}`} type="orders">
               <FormationsModule lang={lang} />
+            </ModuleTransition>
+          )}
+          {activeTab === 'receipts' && (
+            <ModuleTransition key={`receipts-${tabKey}`} type="settings">
+              <ReceiptMaker lang={lang} scope="import" />
             </ModuleTransition>
           )}
           {activeTab === 'archives' && (
