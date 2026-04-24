@@ -147,6 +147,11 @@ const Index = () => {
               <FormationsModule lang={lang} />
             </ModuleTransition>
           )}
+          {activeTab === 'receipts' && (
+            <ModuleTransition key={`receipts-${tabKey}`} type="settings">
+              <ReceiptMaker lang={lang} scope="import" />
+            </ModuleTransition>
+          )}
           {activeTab === 'archives' && (
             <ModuleTransition key={`archives-${tabKey}`} type="orders">
               <ArchivesModule lang={lang} />
