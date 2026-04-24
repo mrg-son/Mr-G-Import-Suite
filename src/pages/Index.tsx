@@ -92,6 +92,11 @@ const Index = () => {
                 <DesignDevisMaker lang={lang} onNavigate={handleTabChange} />
               </ModuleTransition>
             )}
+            {activeTab === 'design-receipts' && (
+              <ModuleTransition key={`drec-${tabKey}`} type="settings">
+                <ReceiptMaker lang={lang} scope="design" />
+              </ModuleTransition>
+            )}
             {activeTab === 'design-payments' && (
               <ModuleTransition key={`pay-${tabKey}`} type="settings">
                 <DesignPayments lang={lang} />
