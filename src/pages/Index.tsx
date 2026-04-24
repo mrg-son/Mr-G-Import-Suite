@@ -23,6 +23,7 @@ import DesignProjects from '@/components/DesignProjects';
 import DesignDevisMaker from '@/components/DesignDevisMaker';
 import DesignPayments from '@/components/DesignPayments';
 import ModuleTransition from '@/components/ModuleTransition';
+import ReceiptMaker from '@/components/ReceiptMaker';
 
 const Index = () => {
   const {
