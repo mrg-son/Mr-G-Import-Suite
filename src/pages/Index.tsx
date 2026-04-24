@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { useAppState } from '@/hooks/useAppState';
 import { initDesignStorage } from '@/lib/designStorage';
 import { initFormationStorage } from '@/lib/formationStorage';
+import { initReceiptStorage } from '@/lib/receiptStorage';
 import OceanBackground from '@/components/OceanBackground';
 import Onboarding from '@/components/Onboarding';
 import PinScreen from '@/components/PinScreen';
