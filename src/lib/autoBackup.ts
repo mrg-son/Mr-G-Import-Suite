@@ -2,6 +2,7 @@
 import { storage } from './storage';
 import { designStorage } from './designStorage';
 import { formationStorage } from './formationStorage';
+import { receiptStorage } from './receiptStorage';
 import { addExport } from './db';
 import { fileNames } from './fileNaming';
 
