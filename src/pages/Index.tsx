@@ -39,7 +39,7 @@ const Index = () => {
   const [tabKey, setTabKey] = useState(0);
 
   // Init design storage
-  useEffect(() => { initDesignStorage(); initFormationStorage(); }, []);
+  useEffect(() => { initDesignStorage(); initFormationStorage(); initReceiptStorage(); }, []);
 
   const handleTabChange = (tab: string, orderId?: string) => {
     setEditOrderId(orderId || null);
