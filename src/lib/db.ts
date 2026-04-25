@@ -33,6 +33,8 @@ export type ReceiptSource = 'order' | 'design-project' | 'formation' | 'devis' |
 export type PaymentMode = 'cash' | 'mobile-money' | 'virement' | 'carte' | 'autre';
 export type ReceiptType = 'acompte' | 'solde' | 'total' | 'partiel';
 
+export type ReceiptTemplate = 'classique' | 'minimal' | 'royal' | 'noir';
+
 export interface MrgReceipt {
   id: string;
   numero: string;
@@ -53,6 +55,14 @@ export interface MrgReceipt {
   notes: string;
   createdAt: string;
   archived?: boolean;
+  // Extensions
+  produits?: string;          // Détails produits commandés (texte libre)
+  lieu?: string;              // Lieu d'émission (ex: Lomé)
+  signatureImage?: string;    // DataURL PNG de la signature
+  template?: ReceiptTemplate; // Modèle de design sélectionné
+  cancelled?: boolean;        // Reçu annulé (reversal)
+  cancelledAt?: string;
+  cancelReason?: string;
 }
 
 interface MrgDB extends DBSchema {
