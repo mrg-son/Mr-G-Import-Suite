@@ -357,7 +357,11 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
     }));
   };
 
-  const resteAPayer = Math.max(0, form.totalAttendu - form.totalDejaPaye - form.montant);
+  // Logique : "Déjà reçu" ne s'applique que si paiement de type "partiel".
+  // Sinon, le reçu représente uniquement le paiement du jour → reste = total - montant.
+  const isPartiel = form.type === 'partiel';
+  const effectiveDejaPaye = isPartiel ? form.totalDejaPaye : 0;
+  const resteAPayer = Math.max(0, form.totalAttendu - effectiveDejaPaye - form.montant);
 
   // Signature upload handler
   const onSignatureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
