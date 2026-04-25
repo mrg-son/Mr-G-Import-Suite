@@ -790,17 +790,19 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
               />
             </div>
 
-            {/* Recap totals */}
+            {/* Recap totals (live) */}
             {form.source !== 'manual' && (
-              <div className="grid grid-cols-3 gap-3 p-3 rounded-lg bg-or/5 border border-or/20">
+              <div className={`grid ${isPartiel ? 'grid-cols-3' : 'grid-cols-2'} gap-3 p-3 rounded-lg bg-or/5 border border-or/20`}>
                 <div className="text-center">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{t('totalExpected', lang)}</p>
                   <p className="font-clash font-bold text-foreground mt-1">{fmt(form.totalAttendu, form.devise)}</p>
                 </div>
-                <div className="text-center">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{t('alreadyPaid', lang)}</p>
-                  <p className="font-clash font-bold text-muted-foreground mt-1">{fmt(form.totalDejaPaye, form.devise)}</p>
-                </div>
+                {isPartiel && (
+                  <div className="text-center">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{t('alreadyPaid', lang)}</p>
+                    <p className="font-clash font-bold text-muted-foreground mt-1">{fmt(form.totalDejaPaye, form.devise)}</p>
+                  </div>
+                )}
                 <div className="text-center">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{t('remainingBalance', lang)}</p>
                   <p className="font-clash font-bold text-or mt-1">{fmt(resteAPayer, form.devise)}</p>
@@ -808,8 +810,8 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
               </div>
             )}
 
-            {/* Total attendu + Déjà payé MANUELS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Total attendu (toujours) + Déjà reçu (UNIQUEMENT si partiel) */}
+            <div className={`grid grid-cols-1 ${isPartiel ? 'md:grid-cols-2' : ''} gap-4`}>
               <div>
                 <label className="block font-satoshi text-xs uppercase tracking-wider text-muted-foreground mb-2">{t('totalExpected', lang)}</label>
                 <input
@@ -818,14 +820,19 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
                   className="w-full h-11 px-3 rounded-lg bg-background/40 border border-border/40 font-satoshi"
                 />
               </div>
-              <div>
-                <label className="block font-satoshi text-xs uppercase tracking-wider text-muted-foreground mb-2">{t('alreadyPaidEditable', lang)}</label>
-                <input
-                  type="number" min="0" value={form.totalDejaPaye || ''}
-                  onChange={e => setForm({ ...form, totalDejaPaye: parseFloat(e.target.value) || 0 })}
-                  className="w-full h-11 px-3 rounded-lg bg-background/40 border border-border/40 font-satoshi"
-                />
-              </div>
+              {isPartiel && (
+                <div>
+                  <label className="block font-satoshi text-xs uppercase tracking-wider text-muted-foreground mb-2">
+                    {t('alreadyPaidEditable', lang)}
+                    <span className="ml-1 text-or normal-case tracking-normal">({lang === 'fr' ? 'partiel uniquement' : 'partial only'})</span>
+                  </label>
+                  <input
+                    type="number" min="0" value={form.totalDejaPaye || ''}
+                    onChange={e => setForm({ ...form, totalDejaPaye: parseFloat(e.target.value) || 0 })}
+                    className="w-full h-11 px-3 rounded-lg bg-background/40 border border-border/40 font-satoshi"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Amount + currency */}
