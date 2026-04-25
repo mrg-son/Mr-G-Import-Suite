@@ -126,21 +126,98 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
   const importJSON = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    // Reject oversized files (>50 MB) before reading
+    const MAX_FILE_BYTES = 50 * 1024 * 1024;
+    if (file.size > MAX_FILE_BYTES) {
+      toast({ title: lang === 'fr' ? 'Fichier trop volumineux (max 50 Mo)' : 'File too large (max 50 MB)', variant: 'destructive' });
+      e.target.value = '';
+      return;
+    }
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
-        const data = JSON.parse(ev.target?.result as string);
+        const raw = ev.target?.result;
+        if (typeof raw !== 'string') throw new Error('Invalid file content');
+        const data = JSON.parse(raw);
+
+        // Top-level shape check
+        if (!data || typeof data !== 'object' || Array.isArray(data)) {
+          throw new Error(lang === 'fr' ? 'Format de sauvegarde invalide' : 'Invalid backup format');
+        }
+
+        // Per-field validation helpers
+        const MAX_STR = 500;
+        const MAX_ARR = 10_000;
+        const safeStr = (v: unknown, max = MAX_STR): string | undefined => {
+          if (typeof v !== 'string') return undefined;
+          return v.slice(0, max);
+        };
+        const isPlainObject = (v: unknown): v is Record<string, unknown> =>
+          !!v && typeof v === 'object' && !Array.isArray(v);
+
+        // Validate each known field; reject the whole import on type mismatch
+        if (data.user !== undefined && typeof data.user !== 'string') {
+          throw new Error(lang === 'fr' ? 'Champ user invalide' : 'Invalid user field');
+        }
+        if (data.profil !== undefined && !isPlainObject(data.profil)) {
+          throw new Error(lang === 'fr' ? 'Champ profil invalide' : 'Invalid profile field');
+        }
+        if (data.orders !== undefined) {
+          if (!Array.isArray(data.orders)) {
+            throw new Error(lang === 'fr' ? 'Champ orders invalide' : 'Invalid orders field');
+          }
+          if (data.orders.length > MAX_ARR) {
+            throw new Error(lang === 'fr' ? 'Trop de commandes' : 'Too many orders');
+          }
+        }
+        if (data.devis !== undefined) {
+          if (!Array.isArray(data.devis)) {
+            throw new Error(lang === 'fr' ? 'Champ devis invalide' : 'Invalid devis field');
+          }
+          if (data.devis.length > MAX_ARR) {
+            throw new Error(lang === 'fr' ? 'Trop de devis' : 'Too many devis');
+          }
+        }
+        if (data.lang !== undefined && data.lang !== 'fr' && data.lang !== 'en') {
+          throw new Error(lang === 'fr' ? 'Champ lang invalide' : 'Invalid lang field');
+        }
+        if (data.theme !== undefined && data.theme !== 'dark' && data.theme !== 'light') {
+          throw new Error(lang === 'fr' ? 'Champ theme invalide' : 'Invalid theme field');
+        }
+        if (data.reminderDays !== undefined) {
+          const n = Number(data.reminderDays);
+          if (!Number.isFinite(n) || n < 0 || n > 365) {
+            throw new Error(lang === 'fr' ? 'Champ reminderDays invalide' : 'Invalid reminderDays field');
+          }
+        }
+
         if (!confirm(t('importConfirm', lang))) return;
-        if (data.user) storage.setUser(data.user);
-        if (data.profil) storage.setProfil(data.profil);
-        if (data.orders) storage.setOrders(data.orders);
-        if (data.devis) storage.setDevis(data.devis);
-        if (data.lang) storage.setLang(data.lang);
-        if (data.theme) storage.setTheme(data.theme);
-        if (data.reminderDays) storage.setReminderDays(data.reminderDays);
+
+        if (data.user !== undefined) storage.setUser(safeStr(data.user, 100) ?? '');
+        if (data.profil !== undefined) {
+          const p = data.profil as Record<string, unknown>;
+          storage.setProfil({
+            nom: safeStr(p.nom, 200) ?? '',
+            // Logo is a data URL — allow longer length but still cap it
+            logo: safeStr(p.logo, 5_000_000) ?? '',
+            devise: safeStr(p.devise, 10) ?? 'XOF',
+          });
+        }
+        if (data.orders !== undefined) storage.setOrders(data.orders);
+        if (data.devis !== undefined) storage.setDevis(data.devis);
+        if (data.lang !== undefined) storage.setLang(data.lang);
+        if (data.theme !== undefined) storage.setTheme(data.theme);
+        if (data.reminderDays !== undefined) storage.setReminderDays(Number(data.reminderDays));
+
         toast({ title: t('importSuccess', lang) });
         window.location.reload();
-      } catch { toast({ title: 'Invalid JSON', variant: 'destructive' }); }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Invalid JSON';
+        toast({ title: msg, variant: 'destructive' });
+      }
+    };
+    reader.onerror = () => {
+      toast({ title: lang === 'fr' ? 'Erreur de lecture du fichier' : 'File read error', variant: 'destructive' });
     };
     reader.readAsText(file);
   };
