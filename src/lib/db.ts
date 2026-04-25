@@ -33,7 +33,7 @@ export type ReceiptSource = 'order' | 'design-project' | 'formation' | 'devis' |
 export type PaymentMode = 'cash' | 'mobile-money' | 'virement' | 'carte' | 'autre';
 export type ReceiptType = 'acompte' | 'solde' | 'total' | 'partiel';
 
-export type ReceiptTemplate = 'classique' | 'minimal' | 'royal' | 'noir';
+export type ReceiptTemplate = 'classique' | 'minimal' | 'royal' | 'noir' | 'papier' | 'mrg';
 
 export interface MrgReceipt {
   id: string;
