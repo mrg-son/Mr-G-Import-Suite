@@ -121,16 +121,27 @@ const PinScreen = ({ lang, userName, onUnlock }: PinScreenProps) => {
               inputMode="numeric"
               maxLength={1}
               value={v}
+              disabled={isLocked}
               onChange={e => handleInput(i, e.target.value)}
               onKeyDown={e => handleKeyDown(i, e)}
-              className={`w-16 h-16 text-center text-2xl font-bold rounded-2xl bg-secondary border-2 focus:outline-none transition-all font-satoshi ${
-                error ? 'border-destructive' : 'border-border focus:border-primary'
+              className={`w-16 h-16 text-center text-2xl font-bold rounded-2xl bg-secondary border-2 focus:outline-none transition-all font-satoshi disabled:opacity-50 disabled:cursor-not-allowed ${
+                error || isLocked ? 'border-destructive' : 'border-border focus:border-primary'
               }`}
             />
           ))}
         </div>
 
-        {error && (
+        {isLocked ? (
+          <motion.p
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-destructive text-center text-sm mt-4 font-satoshi"
+          >
+            {lang === 'fr'
+              ? `Trop de tentatives. Réessayez dans ${remainingSec}s.`
+              : `Too many attempts. Try again in ${remainingSec}s.`}
+          </motion.p>
+        ) : error && (
           <motion.p
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
