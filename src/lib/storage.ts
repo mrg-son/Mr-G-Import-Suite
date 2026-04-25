@@ -76,6 +76,12 @@ export interface MrgPaymentInfo {
   methods: PaymentMethod[];
 }
 
+// ========== PIN hashing (SHA-256 via Web Crypto) ==========
+async function hashPin(pin: string): Promise<string> {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pin));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 // ========== In-memory cache ==========
 let cache: Record<string, string> = {};
 let ordersCache: MrgOrder[] | null = null;
@@ -138,8 +144,26 @@ export const storage = {
   setUser: (name: string) => set(KEYS.user, name),
 
   getPin: (): string | null => get(KEYS.pin),
-  setPin: (pin: string) => set(KEYS.pin, btoa(pin)),
-  checkPin: (pin: string): boolean => btoa(pin) === get(KEYS.pin),
+  setPin: async (pin: string) => {
+    const hashed = await hashPin(pin);
+    set(KEYS.pin, `sha256:${hashed}`);
+  },
+  checkPin: async (pin: string): Promise<boolean> => {
+    const stored = get(KEYS.pin);
+    if (!stored) return false;
+    // New scheme: prefixed sha256 hash
+    if (stored.startsWith('sha256:')) {
+      const hashed = await hashPin(pin);
+      return stored === `sha256:${hashed}`;
+    }
+    // Legacy btoa scheme — verify, then transparently upgrade to sha256
+    if (stored === btoa(pin)) {
+      const hashed = await hashPin(pin);
+      set(KEYS.pin, `sha256:${hashed}`);
+      return true;
+    }
+    return false;
+  },
 
   getLang: (): 'fr' | 'en' => (get(KEYS.lang) as 'fr' | 'en') || 'fr',
   setLang: (lang: 'fr' | 'en') => set(KEYS.lang, lang),

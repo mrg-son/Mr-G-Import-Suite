@@ -70,7 +70,7 @@ const Onboarding = ({ lang, onComplete }: OnboardingProps) => {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step === 0) {
       setStep(1);
     } else if (step === 1) {
@@ -85,7 +85,7 @@ const Onboarding = ({ lang, onComplete }: OnboardingProps) => {
           setConfirmPin(['', '', '', '']);
           return;
         }
-        storage.setPin(pin.join(''));
+        await storage.setPin(pin.join(''));
         setStep(3);
       }
     } else if (step === 3) {
