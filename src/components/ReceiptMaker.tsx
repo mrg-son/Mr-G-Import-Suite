@@ -391,7 +391,7 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
       toast({ title: lang === 'fr' ? 'Montant invalide' : 'Invalid amount', variant: 'destructive' });
       return;
     }
-    if (form.source !== 'manual' && form.totalAttendu > 0 && form.montant > (form.totalAttendu - form.totalDejaPaye)) {
+    if (form.source !== 'manual' && form.totalAttendu > 0 && form.montant > (form.totalAttendu - effectiveDejaPaye)) {
       toast({ title: t('amountExceedsBalance', lang), variant: 'destructive' });
       return;
     }
@@ -411,7 +411,7 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
       modePaiementCustom: form.modePaiementCustom,
       type: form.type,
       totalAttendu: form.totalAttendu,
-      totalDejaPaye: form.totalDejaPaye,
+      totalDejaPaye: effectiveDejaPaye,
       resteAPayer,
       notes: form.notes,
       createdAt: editing?.createdAt || new Date().toISOString(),
@@ -424,15 +424,15 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
     if (editing) receiptStorage.updateReceipt(r);
     else receiptStorage.addReceipt(r);
 
-    // Update source acompte
+    // Update source acompte (cumul = déjà reçu effectif + paiement du jour)
     if (form.source === 'design-project' && form.sourceId) {
       const ps = designStorage.getProjects().map(p =>
-        p.id === form.sourceId ? { ...p, acompte: form.totalDejaPaye + form.montant } : p
+        p.id === form.sourceId ? { ...p, acompte: effectiveDejaPaye + form.montant } : p
       );
       designStorage.setProjects(ps);
     } else if (form.source === 'formation' && form.sourceId) {
       const f = formationStorage.getFormations().find(x => x.id === form.sourceId);
-      if (f) formationStorage.updateFormation({ ...f, acompte: form.totalDejaPaye + form.montant });
+      if (f) formationStorage.updateFormation({ ...f, acompte: effectiveDejaPaye + form.montant });
     }
 
     reload();
