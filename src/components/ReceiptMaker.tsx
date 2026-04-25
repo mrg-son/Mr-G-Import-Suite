@@ -1123,23 +1123,27 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
               </p>
             </div>
 
-            {/* Recap table */}
-            {r.totalAttendu > 0 && (
-              <div className="mt-6 rounded-lg overflow-hidden" style={{ border: `1px solid ${theme.border}` }}>
-                <div className="grid grid-cols-4 text-xs" style={{ background: theme.surface }}>
-                  <div className="p-3 font-semibold uppercase tracking-wider">{t('totalExpected', lang)}</div>
-                  <div className="p-3 font-semibold uppercase tracking-wider">{t('alreadyPaid', lang)}</div>
-                  <div className="p-3 font-semibold uppercase tracking-wider" style={{ color: theme.accent }}>{t('thisPayment', lang)}</div>
-                  <div className="p-3 font-semibold uppercase tracking-wider">{t('remainingBalance', lang)}</div>
+            {/* Recap table — colonne "déjà reçu" uniquement pour paiement partiel */}
+            {r.totalAttendu > 0 && (() => {
+              const showDeja = r.type === 'partiel' && r.totalDejaPaye > 0;
+              const cols = showDeja ? 'grid-cols-4' : 'grid-cols-3';
+              return (
+                <div className="mt-6 rounded-lg overflow-hidden" style={{ border: `1px solid ${theme.border}` }}>
+                  <div className={`grid ${cols} text-xs`} style={{ background: theme.surface }}>
+                    <div className="p-3 font-semibold uppercase tracking-wider">{t('totalExpected', lang)}</div>
+                    {showDeja && <div className="p-3 font-semibold uppercase tracking-wider">{t('alreadyPaid', lang)}</div>}
+                    <div className="p-3 font-semibold uppercase tracking-wider" style={{ color: theme.accent }}>{t('thisPayment', lang)}</div>
+                    <div className="p-3 font-semibold uppercase tracking-wider">{t('remainingBalance', lang)}</div>
+                  </div>
+                  <div className={`grid ${cols} text-sm`}>
+                    <div className="p-3">{fmt(r.totalAttendu, r.devise)}</div>
+                    {showDeja && <div className="p-3">{fmt(r.totalDejaPaye, r.devise)}</div>}
+                    <div className="p-3 font-bold" style={{ color: theme.accent }}>{fmt(r.montant, r.devise)}</div>
+                    <div className={`p-3 font-bold ${r.resteAPayer === 0 ? 'text-emerald-500' : ''}`}>{fmt(r.resteAPayer, r.devise)}</div>
+                  </div>
                 </div>
-                <div className="grid grid-cols-4 text-sm">
-                  <div className="p-3">{fmt(r.totalAttendu, r.devise)}</div>
-                  <div className="p-3">{fmt(r.totalDejaPaye, r.devise)}</div>
-                  <div className="p-3 font-bold" style={{ color: theme.accent }}>{fmt(r.montant, r.devise)}</div>
-                  <div className={`p-3 font-bold ${r.resteAPayer === 0 ? 'text-emerald-500' : ''}`}>{fmt(r.resteAPayer, r.devise)}</div>
-                </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Meta */}
             <div className="grid grid-cols-2 gap-4 mt-6 text-sm">
