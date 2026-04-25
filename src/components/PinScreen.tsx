@@ -13,11 +13,49 @@ interface PinScreenProps {
 const PinScreen = ({ lang, userName, onUnlock }: PinScreenProps) => {
   const [pin, setPin] = useState(['', '', '', '']);
   const [error, setError] = useState(false);
+  const [lockedUntil, setLockedUntil] = useState<number>(() => {
+    const v = parseInt(localStorage.getItem('mrg_pin_locked_until') || '0', 10);
+    return isNaN(v) ? 0 : v;
+  });
+  const [now, setNow] = useState(Date.now());
   const refs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const LOCKOUT_AFTER = 5;
+  const BASE_LOCKOUT_MS = 30_000;
 
   useEffect(() => { refs.current[0]?.focus(); }, []);
 
+  // Tick to refresh countdown while locked
+  useEffect(() => {
+    if (lockedUntil <= Date.now()) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [lockedUntil]);
+
+  const isLocked = lockedUntil > now;
+  const remainingSec = Math.max(0, Math.ceil((lockedUntil - now) / 1000));
+
+  const registerFailure = () => {
+    const fails = parseInt(localStorage.getItem('mrg_pin_fails') || '0', 10) + 1;
+    localStorage.setItem('mrg_pin_fails', String(fails));
+    if (fails >= LOCKOUT_AFTER) {
+      // Exponential backoff: 30s, 60s, 120s, ...
+      const rounds = Math.floor(fails / LOCKOUT_AFTER);
+      const lockMs = BASE_LOCKOUT_MS * Math.pow(2, rounds - 1);
+      const until = Date.now() + lockMs;
+      localStorage.setItem('mrg_pin_locked_until', String(until));
+      setLockedUntil(until);
+    }
+  };
+
+  const resetFailures = () => {
+    localStorage.removeItem('mrg_pin_fails');
+    localStorage.removeItem('mrg_pin_locked_until');
+    setLockedUntil(0);
+  };
+
   const handleInput = (index: number, value: string) => {
+    if (isLocked) return;
     if (!/^\d*$/.test(value)) return;
     const arr = [...pin];
     arr[index] = value.slice(-1);
@@ -32,10 +70,13 @@ const PinScreen = ({ lang, userName, onUnlock }: PinScreenProps) => {
     if (value && index === 3) {
       const fullPin = arr.join('');
       if (fullPin.length === 4) {
-        setTimeout(() => {
-          if (storage.checkPin(fullPin)) {
+        setTimeout(async () => {
+          const ok = await storage.checkPin(fullPin);
+          if (ok) {
+            resetFailures();
             onUnlock();
           } else {
+            registerFailure();
             setError(true);
             setPin(['', '', '', '']);
             refs.current[0]?.focus();
