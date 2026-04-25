@@ -107,6 +107,32 @@ const TEMPLATES: Record<ReceiptTemplate, TemplateTheme> = {
     amountBg: 'linear-gradient(135deg, rgba(200,168,75,0.18), rgba(200,168,75,0.05))',
     isDark: true,
   },
+  papier: {
+    id: 'papier',
+    name: { fr: 'Papier blanc', en: 'White paper' },
+    bg: '#ffffff',
+    text: '#111827',
+    textMuted: '#4b5563',
+    accent: '#111827',
+    border: '#d1d5db',
+    surface: '#f3f4f6',
+    fontFamily: 'Georgia, "Times New Roman", serif',
+    amountBg: '#ffffff',
+    isDark: false,
+  },
+  mrg: {
+    id: 'mrg',
+    name: { fr: 'Mr.G Suite', en: 'Mr.G Suite' },
+    bg: '#0a1628',
+    text: '#e6f1ff',
+    textMuted: 'rgba(230,241,255,0.6)',
+    accent: '#14b8a6',
+    border: 'rgba(20,184,166,0.25)',
+    surface: 'rgba(20,184,166,0.08)',
+    fontFamily: '"Clash Display", "Satoshi", system-ui, sans-serif',
+    amountBg: 'linear-gradient(135deg, rgba(20,184,166,0.20), rgba(200,168,75,0.10))',
+    isDark: true,
+  },
 };
 
 // Number to words (FR + EN)
