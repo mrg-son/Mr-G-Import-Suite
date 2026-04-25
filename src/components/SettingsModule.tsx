@@ -57,16 +57,16 @@ const SettingsModule = ({ lang, onReset, onProfileUpdate }: SettingsModuleProps)
     toast({ title: t('saved', lang) });
   };
 
-  const handlePinChange = () => {
-    if (!storage.checkPin(oldPin)) {
+  const handlePinChange = async () => {
+    if (!(await storage.checkPin(oldPin))) {
       toast({ title: t('pinOldError', lang), variant: 'destructive' });
       return;
     }
-    if (newPin.length !== 4 || newPin !== confirmPin) {
+    if (newPin.length !== 4 || !/^\d{4}$/.test(newPin) || newPin !== confirmPin) {
       toast({ title: t('pinMismatch', lang), variant: 'destructive' });
       return;
     }
-    storage.setPin(newPin);
+    await storage.setPin(newPin);
     setOldPin(''); setNewPin(''); setConfirmPin('');
     toast({ title: t('pinUpdated', lang) });
   };
