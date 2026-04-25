@@ -76,6 +76,12 @@ export interface MrgPaymentInfo {
   methods: PaymentMethod[];
 }
 
+// ========== PIN hashing (SHA-256 via Web Crypto) ==========
+async function hashPin(pin: string): Promise<string> {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pin));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 // ========== In-memory cache ==========
 let cache: Record<string, string> = {};
 let ordersCache: MrgOrder[] | null = null;
