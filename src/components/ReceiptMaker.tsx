@@ -363,6 +363,8 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
     setEditing(r);
     setView('create');
   };
+
+  const handleSelectSource = (key: string) => {
     if (key === 'manual') {
       setForm(f => ({ ...f, source: 'manual', sourceId: '', sourceLabel: '', client: '', clientPhone: '', totalAttendu: 0, totalDejaPaye: 0, montant: 0, type: 'total' }));
       return;
