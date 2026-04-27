@@ -61,6 +61,14 @@ export interface MrgDevis {
   statut: 'brouillon' | 'envoye' | 'confirme';
   orderId: string;
   createdAt: string;
+  // Visibility toggles for shipping modes
+  showBateau?: boolean;
+  showAvion?: boolean;
+  // Delivery delays (editable)
+  delaiBateauMin?: number;
+  delaiBateauMax?: number;
+  delaiAvionMin?: number;
+  delaiAvionMax?: number;
 }
 
 export interface PaymentMethod {
