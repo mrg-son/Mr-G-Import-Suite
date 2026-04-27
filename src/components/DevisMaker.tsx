@@ -227,7 +227,22 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
     statut: 'brouillon',
     orderId: '',
     createdAt: new Date().toISOString(),
+    showBateau: true,
+    showAvion: true,
+    delaiBateauMin: 45,
+    delaiBateauMax: 60,
+    delaiAvionMin: 7,
+    delaiAvionMax: 15,
   });
+
+  // Helpers
+  const showBateau = currentDevis.showBateau !== false;
+  const showAvion = currentDevis.showAvion !== false;
+  // Show "Personnalisé/Mix" only if user actually mixes modes (multiple lines OR a line using mix/personnalise)
+  const showCustomTotal = showBateau && showAvion && (
+    currentDevis.lignes.length > 1 ||
+    currentDevis.lignes.some(l => l.modeChoisi === 'mix' || l.modeChoisi === 'personnalise')
+  );
 
   // NEW LOGIC: 
   // totalBateau = ALL lines as if shipped by boat: (qty*price + expedition + fraisRecupBateau)
