@@ -1180,10 +1180,7 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
   // ============= PREVIEW VIEW =============
   if (view === 'preview' && previewing) {
     const r = previewing;
-    const theme = TEMPLATES[previewTemplate];
-    const modeName = r.modePaiement === 'autre' && r.modePaiementCustom
-      ? r.modePaiementCustom
-      : t((r.modePaiement === 'mobile-money' ? 'mobileMoney' : r.modePaiement === 'cash' ? 'cash' : r.modePaiement === 'virement' ? 'transfer' : r.modePaiement === 'carte' ? 'card' : 'other') as any, lang);
+
 
     return (
       <div className="pt-20 pb-12 px-4 max-w-4xl mx-auto">
