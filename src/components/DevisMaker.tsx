@@ -669,6 +669,88 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
           </div>
         </div>
 
+        {/* Modes & délais */}
+        <div className="glass-card p-6 mb-6 space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Bateau toggle + delays */}
+            <div className={`p-4 rounded-xl border-2 transition-all ${showBateau ? 'border-bleu-mer/40 bg-bleu-mer/5' : 'border-border/30 bg-muted/20 opacity-60'}`}>
+              <label className="flex items-center justify-between cursor-pointer mb-3">
+                <span className="flex items-center gap-2 font-clash font-bold uppercase text-sm tracking-wider text-bleu-mer">
+                  <Ship size={16} /> {t('showBoatMode', lang)}
+                </span>
+                <input
+                  type="checkbox"
+                  checked={showBateau}
+                  onChange={e => setCurrentDevis(p => ({ ...p, showBateau: e.target.checked }))}
+                  className="w-4 h-4 accent-bleu-mer cursor-pointer"
+                />
+              </label>
+              {showBateau && (
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[10px] text-muted-foreground mb-1 font-satoshi uppercase tracking-wider">{t('minDays', lang)}</label>
+                    <input
+                      type="number" min="1"
+                      value={currentDevis.delaiBateauMin ?? 45}
+                      onChange={e => setCurrentDevis(p => ({ ...p, delaiBateauMin: parseInt(e.target.value) || 0 }))}
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-muted-foreground mb-1 font-satoshi uppercase tracking-wider">{t('maxDays', lang)}</label>
+                    <input
+                      type="number" min="1"
+                      value={currentDevis.delaiBateauMax ?? 60}
+                      onChange={e => setCurrentDevis(p => ({ ...p, delaiBateauMax: parseInt(e.target.value) || 0 }))}
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Avion toggle + delays */}
+            <div className={`p-4 rounded-xl border-2 transition-all ${showAvion ? 'border-or/40 bg-or/5' : 'border-border/30 bg-muted/20 opacity-60'}`}>
+              <label className="flex items-center justify-between cursor-pointer mb-3">
+                <span className="flex items-center gap-2 font-clash font-bold uppercase text-sm tracking-wider text-or">
+                  <Plane size={16} /> {t('showPlaneMode', lang)}
+                </span>
+                <input
+                  type="checkbox"
+                  checked={showAvion}
+                  onChange={e => setCurrentDevis(p => ({ ...p, showAvion: e.target.checked }))}
+                  className="w-4 h-4 accent-yellow-500 cursor-pointer"
+                />
+              </label>
+              {showAvion && (
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[10px] text-muted-foreground mb-1 font-satoshi uppercase tracking-wider">{t('minDays', lang)}</label>
+                    <input
+                      type="number" min="1"
+                      value={currentDevis.delaiAvionMin ?? 7}
+                      onChange={e => setCurrentDevis(p => ({ ...p, delaiAvionMin: parseInt(e.target.value) || 0 }))}
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-muted-foreground mb-1 font-satoshi uppercase tracking-wider">{t('maxDays', lang)}</label>
+                    <input
+                      type="number" min="1"
+                      value={currentDevis.delaiAvionMax ?? 15}
+                      onChange={e => setCurrentDevis(p => ({ ...p, delaiAvionMax: parseInt(e.target.value) || 0 }))}
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          {!showBateau && !showAvion && (
+            <p className="text-xs text-destructive font-satoshi text-center">{lang === 'fr' ? 'Activez au moins un mode de transport.' : 'Enable at least one transport mode.'}</p>
+          )}
+        </div>
+
         {/* Lines */}
         <div className="space-y-4 mb-6">
           <AnimatePresence>
