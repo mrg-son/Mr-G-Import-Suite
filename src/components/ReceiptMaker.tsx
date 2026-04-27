@@ -339,7 +339,30 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
     setView('create');
   };
 
-  const handleSelectSource = (key: string) => {
+  const loadReceiptForEdit = (r: MrgReceipt) => {
+    setForm({
+      source: r.source,
+      sourceId: r.sourceId || '',
+      client: r.client,
+      clientPhone: r.clientPhone,
+      sourceLabel: r.sourceLabel,
+      montant: r.montant,
+      devise: r.devise,
+      modePaiement: r.modePaiement,
+      modePaiementCustom: r.modePaiementCustom || '',
+      type: r.type,
+      totalAttendu: r.totalAttendu,
+      totalDejaPaye: r.totalDejaPaye,
+      notes: r.notes || '',
+      date: r.date,
+      produits: r.produits || '',
+      lieu: r.lieu || '',
+      signatureImage: r.signatureImage || '',
+      template: r.template || 'classique',
+    });
+    setEditing(r);
+    setView('create');
+  };
     if (key === 'manual') {
       setForm(f => ({ ...f, source: 'manual', sourceId: '', sourceLabel: '', client: '', clientPhone: '', totalAttendu: 0, totalDejaPaye: 0, montant: 0, type: 'total' }));
       return;
