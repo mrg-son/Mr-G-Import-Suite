@@ -795,7 +795,7 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
             </div>
 
             {/* Recap totals (live) */}
-            {form.source !== 'manual' && (
+            {form.totalAttendu > 0 && (
               <div className={`grid ${isPartiel ? 'grid-cols-3' : 'grid-cols-2'} gap-3 p-3 rounded-lg bg-or/5 border border-or/20`}>
                 <div className="text-center">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{t('totalExpected', lang)}</p>
