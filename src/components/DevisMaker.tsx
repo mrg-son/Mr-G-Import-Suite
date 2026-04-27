@@ -573,22 +573,37 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
           </table>
 
           {/* Totals */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <div className="p-4 rounded-xl bg-bleu-mer/15 text-center">
-              <p className="font-clash uppercase text-xs tracking-wider text-bleu-mer">{t('totalBoat', lang)}</p>
-              <p className="font-satoshi text-sm text-muted-foreground mb-1">{lang === 'fr' ? '(Si tout par bateau)' : '(If all by sea)'}</p>
-              <p className="font-satoshi font-bold text-xl">{formatNum(currentDevis.totalBateau, currentDevis.devise)}</p>
-            </div>
-            <div className="p-4 rounded-xl bg-or/15 text-center">
-              <p className="font-clash uppercase text-xs tracking-wider text-or">{t('totalPlane', lang)}</p>
-              <p className="font-satoshi text-sm text-muted-foreground mb-1">{lang === 'fr' ? '(Si tout par avion)' : '(If all by air)'}</p>
-              <p className="font-satoshi font-bold text-xl">{formatNum(currentDevis.totalAvion, currentDevis.devise)}</p>
-            </div>
-            <div className="p-4 rounded-xl bg-primary/15 text-center">
-              <p className="font-clash uppercase text-xs tracking-wider text-primary">{t('totalCustom', lang)}</p>
-              <p className="font-satoshi text-sm text-muted-foreground mb-1">{lang === 'fr' ? '(Mix personnalisé)' : '(Custom mix)'}</p>
-              <p className="font-satoshi font-bold text-xl">{formatNum(currentDevis.totalPersonnalise, currentDevis.devise)}</p>
-            </div>
+          <div className={`grid gap-4 mb-6 ${[showBateau, showAvion, showCustomTotal].filter(Boolean).length === 1 ? 'grid-cols-1' : [showBateau, showAvion, showCustomTotal].filter(Boolean).length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+            {showBateau && (
+              <div className="p-4 rounded-xl bg-bleu-mer/15 text-center">
+                <p className="font-clash uppercase text-xs tracking-wider text-bleu-mer">{t('totalBoat', lang)}</p>
+                <p className="font-satoshi text-sm text-muted-foreground mb-1">{lang === 'fr' ? '(Si tout par bateau)' : '(If all by sea)'}</p>
+                <p className="font-satoshi font-bold text-xl">{formatNum(currentDevis.totalBateau, currentDevis.devise)}</p>
+                <p className="font-satoshi text-[11px] text-bleu-mer mt-2 italic">
+                  {t('etaBoat', lang)} <strong>{currentDevis.delaiBateauMin ?? 45}</strong> {lang === 'fr' ? 'à' : 'to'} <strong>{currentDevis.delaiBateauMax ?? 60}</strong> {t('days', lang)}
+                </p>
+              </div>
+            )}
+            {showAvion && (
+              <div className="p-4 rounded-xl bg-or/15 text-center">
+                <p className="font-clash uppercase text-xs tracking-wider text-or">{t('totalPlane', lang)}</p>
+                <p className="font-satoshi text-sm text-muted-foreground mb-1">{lang === 'fr' ? '(Si tout par avion)' : '(If all by air)'}</p>
+                <p className="font-satoshi font-bold text-xl">{formatNum(currentDevis.totalAvion, currentDevis.devise)}</p>
+                <p className="font-satoshi text-[11px] text-or mt-2 italic">
+                  {t('etaPlane', lang)} <strong>{currentDevis.delaiAvionMin ?? 7}</strong> {lang === 'fr' ? 'à' : 'to'} <strong>{currentDevis.delaiAvionMax ?? 15}</strong> {t('days', lang)}
+                </p>
+              </div>
+            )}
+            {showCustomTotal && (
+              <div className="p-4 rounded-xl bg-primary/15 text-center">
+                <p className="font-clash uppercase text-xs tracking-wider text-primary">{t('totalCustom', lang)}</p>
+                <p className="font-satoshi text-sm text-muted-foreground mb-1">{lang === 'fr' ? '(Mix personnalisé)' : '(Custom mix)'}</p>
+                <p className="font-satoshi font-bold text-xl">{formatNum(currentDevis.totalPersonnalise, currentDevis.devise)}</p>
+                <p className="font-satoshi text-[11px] text-primary mt-2 italic">
+                  {t('globalEta', lang)}: <strong>{Math.min(currentDevis.delaiAvionMin ?? 7, currentDevis.delaiBateauMin ?? 45)}</strong>-<strong>{Math.max(currentDevis.delaiAvionMax ?? 15, currentDevis.delaiBateauMax ?? 60)}</strong> {t('days', lang)}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Payment Info */}
