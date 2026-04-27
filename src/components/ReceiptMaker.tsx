@@ -681,16 +681,12 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
     toast({ title: t('receiptCancelled', lang) });
   };
 
-  const exportPNG = async () => {
-    if (!exportRef.current || !previewing) return;
+  const exportNodeAsPNG = async (node: HTMLElement, template: ReceiptTemplate, filename: string) => {
     try {
-      const theme = TEMPLATES[previewTemplate];
-      const canvas = await html2canvas(exportRef.current, {
-        backgroundColor: theme.bg,
-        scale: 2,
-      });
+      const theme = TEMPLATES[template];
+      const canvas = await html2canvas(node, { backgroundColor: theme.bg, scale: 2 });
       const link = document.createElement('a');
-      link.download = fileNames.receiptPNG(previewing.client, previewing.numero);
+      link.download = filename;
       link.href = canvas.toDataURL('image/png');
       link.click();
     } catch {
@@ -698,14 +694,10 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
     }
   };
 
-  const exportPDF = async () => {
-    if (!exportRef.current || !previewing) return;
+  const exportNodeAsPDF = async (node: HTMLElement, template: ReceiptTemplate, filename: string) => {
     try {
-      const theme = TEMPLATES[previewTemplate];
-      const canvas = await html2canvas(exportRef.current, {
-        backgroundColor: theme.bg,
-        scale: 2,
-      });
+      const theme = TEMPLATES[template];
+      const canvas = await html2canvas(node, { backgroundColor: theme.bg, scale: 2 });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       const pageW = pdf.internal.pageSize.getWidth();
@@ -717,10 +709,60 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
       const x = (pageW - w) / 2;
       const y = (pageH - h) / 2;
       pdf.addImage(imgData, 'PNG', x, y, w, h);
-      pdf.save(fileNames.receiptPDF(previewing.client, previewing.numero));
+      pdf.save(filename);
     } catch {
       toast({ title: 'PDF export failed', variant: 'destructive' });
     }
+  };
+
+  const exportPNG = () => {
+    if (!exportRef.current || !previewing) return;
+    exportNodeAsPNG(exportRef.current, previewTemplate, fileNames.receiptPNG(previewing.client, previewing.numero));
+  };
+
+  const exportPDF = () => {
+    if (!exportRef.current || !previewing) return;
+    exportNodeAsPDF(exportRef.current, previewTemplate, fileNames.receiptPDF(previewing.client, previewing.numero));
+  };
+
+  // Build a draft receipt object from current form state (for live preview & download-without-save)
+  const buildDraftReceipt = (): MrgReceipt => ({
+    id: editing?.id || 'draft',
+    numero: editing?.numero || (lang === 'fr' ? 'Brouillon' : 'Draft'),
+    date: form.date,
+    client: form.client,
+    clientPhone: form.clientPhone,
+    source: form.source,
+    sourceId: form.sourceId || undefined,
+    sourceLabel: form.sourceLabel || form.client || '',
+    montant: form.montant,
+    devise: form.devise,
+    modePaiement: form.modePaiement,
+    modePaiementCustom: form.modePaiementCustom,
+    type: form.type,
+    totalAttendu: form.totalAttendu,
+    totalDejaPaye: effectiveDejaPaye,
+    resteAPayer,
+    notes: form.notes,
+    createdAt: editing?.createdAt || new Date().toISOString(),
+    produits: form.produits,
+    lieu: form.lieu,
+    signatureImage: form.signatureImage,
+    template: form.template,
+  });
+
+  const downloadDraftPNG = () => {
+    if (!livePreviewRef.current) return;
+    const clientName = form.client || 'recu';
+    const num = editing?.numero || 'brouillon';
+    exportNodeAsPNG(livePreviewRef.current, form.template, fileNames.receiptPNG(clientName, num));
+  };
+
+  const downloadDraftPDF = () => {
+    if (!livePreviewRef.current) return;
+    const clientName = form.client || 'recu';
+    const num = editing?.numero || 'brouillon';
+    exportNodeAsPDF(livePreviewRef.current, form.template, fileNames.receiptPDF(clientName, num));
   };
 
   const sendWhatsApp = () => {
