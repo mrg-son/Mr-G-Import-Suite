@@ -969,14 +969,19 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
 
   // ============= CREATE VIEW =============
   if (view === 'create') {
+    const draft = buildDraftReceipt();
     return (
-      <div className="pt-20 pb-12 px-4 max-w-3xl mx-auto">
+      <div className="pt-20 pb-12 px-4 max-w-7xl mx-auto">
         <button onClick={() => setView('list')} className="flex items-center gap-2 mb-6 text-muted-foreground hover:text-foreground font-satoshi text-sm">
           <ArrowLeft size={16} /> {t('back', lang)}
         </button>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="font-clash text-3xl font-bold mb-6 text-foreground">{t('newReceipt', lang)}</h1>
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 items-start">
+          {/* ===== Form column ===== */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <h1 className="font-clash text-3xl font-bold mb-6 text-foreground">
+              {editing ? t('editReceipt', lang) : t('newReceipt', lang)}
+            </h1>
 
           <div className="rounded-2xl p-6 bg-surface-sombre/60 backdrop-blur-xl border border-border/40 space-y-5">
             {/* Source */}
