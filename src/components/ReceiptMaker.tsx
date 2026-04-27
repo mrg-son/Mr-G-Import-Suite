@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Download, MessageCircle, Eye, ArrowLeft, Receipt as ReceiptIcon, Search, Ban, Upload, X } from 'lucide-react';
+import { Plus, Trash2, Download, MessageCircle, Eye, ArrowLeft, Receipt as ReceiptIcon, Search, Ban, Upload, X, Pencil } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { receiptStorage, type MrgReceipt } from '@/lib/receiptStorage';
