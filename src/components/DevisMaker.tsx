@@ -888,22 +888,37 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
         </div>
 
         {/* Totals */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="glass-card p-4 text-center">
-            <p className="font-clash uppercase text-xs tracking-wider text-bleu-mer">{t('totalBoat', lang)}</p>
-            <p className="font-satoshi text-[10px] text-muted-foreground">{lang === 'fr' ? 'Si tout par bateau' : 'If all by sea'}</p>
-            <p className="font-satoshi font-bold text-2xl mt-1">{formatNum(currentDevis.totalBateau, currentDevis.devise)}</p>
-          </div>
-          <div className="glass-card p-4 text-center">
-            <p className="font-clash uppercase text-xs tracking-wider text-or">{t('totalPlane', lang)}</p>
-            <p className="font-satoshi text-[10px] text-muted-foreground">{lang === 'fr' ? 'Si tout par avion' : 'If all by air'}</p>
-            <p className="font-satoshi font-bold text-2xl mt-1">{formatNum(currentDevis.totalAvion, currentDevis.devise)}</p>
-          </div>
-          <div className="glass-card p-4 text-center">
-            <p className="font-clash uppercase text-xs tracking-wider text-primary">{t('totalCustom', lang)}</p>
-            <p className="font-satoshi text-[10px] text-muted-foreground">{lang === 'fr' ? 'Mix personnalisé' : 'Custom mix'}</p>
-            <p className="font-satoshi font-bold text-2xl mt-1">{formatNum(currentDevis.totalPersonnalise, currentDevis.devise)}</p>
-          </div>
+        <div className={`grid gap-4 ${[showBateau, showAvion, showCustomTotal].filter(Boolean).length === 1 ? 'grid-cols-1' : [showBateau, showAvion, showCustomTotal].filter(Boolean).length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+          {showBateau && (
+            <div className="glass-card p-4 text-center">
+              <p className="font-clash uppercase text-xs tracking-wider text-bleu-mer">{t('totalBoat', lang)}</p>
+              <p className="font-satoshi text-[10px] text-muted-foreground">{lang === 'fr' ? 'Si tout par bateau' : 'If all by sea'}</p>
+              <p className="font-satoshi font-bold text-2xl mt-1">{formatNum(currentDevis.totalBateau, currentDevis.devise)}</p>
+              <p className="font-satoshi text-[11px] text-bleu-mer mt-2 italic">
+                {t('etaBoat', lang)} {currentDevis.delaiBateauMin ?? 45}-{currentDevis.delaiBateauMax ?? 60} {t('days', lang)}
+              </p>
+            </div>
+          )}
+          {showAvion && (
+            <div className="glass-card p-4 text-center">
+              <p className="font-clash uppercase text-xs tracking-wider text-or">{t('totalPlane', lang)}</p>
+              <p className="font-satoshi text-[10px] text-muted-foreground">{lang === 'fr' ? 'Si tout par avion' : 'If all by air'}</p>
+              <p className="font-satoshi font-bold text-2xl mt-1">{formatNum(currentDevis.totalAvion, currentDevis.devise)}</p>
+              <p className="font-satoshi text-[11px] text-or mt-2 italic">
+                {t('etaPlane', lang)} {currentDevis.delaiAvionMin ?? 7}-{currentDevis.delaiAvionMax ?? 15} {t('days', lang)}
+              </p>
+            </div>
+          )}
+          {showCustomTotal && (
+            <div className="glass-card p-4 text-center">
+              <p className="font-clash uppercase text-xs tracking-wider text-primary">{t('totalCustom', lang)}</p>
+              <p className="font-satoshi text-[10px] text-muted-foreground">{lang === 'fr' ? 'Mix personnalisé' : 'Custom mix'}</p>
+              <p className="font-satoshi font-bold text-2xl mt-1">{formatNum(currentDevis.totalPersonnalise, currentDevis.devise)}</p>
+              <p className="font-satoshi text-[11px] text-primary mt-2 italic">
+                {t('globalEta', lang)}: {Math.min(currentDevis.delaiAvionMin ?? 7, currentDevis.delaiBateauMin ?? 45)}-{Math.max(currentDevis.delaiAvionMax ?? 15, currentDevis.delaiBateauMax ?? 60)} {t('days', lang)}
+              </p>
+            </div>
+          )}
         </div>
       </motion.div>
 
