@@ -409,7 +409,7 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
       clientPhone: form.clientPhone,
       source: form.source,
       sourceId: form.sourceId || undefined,
-      sourceLabel: form.sourceLabel || (lang === 'fr' ? 'Paiement libre' : 'Free payment'),
+      sourceLabel: form.sourceLabel || form.client || (lang === 'fr' ? 'Paiement libre' : 'Free payment'),
       montant: form.montant,
       devise: form.devise,
       modePaiement: form.modePaiement,
