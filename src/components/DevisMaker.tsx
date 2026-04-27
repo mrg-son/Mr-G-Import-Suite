@@ -401,11 +401,23 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
       nomEntreprise: profil.nom || '', lignes: [emptyLine()],
       totalBateau: 0, totalAvion: 0, totalPersonnalise: 0,
       statut: 'brouillon', orderId: '', createdAt: new Date().toISOString(),
+      showBateau: true, showAvion: true,
+      delaiBateauMin: 45, delaiBateauMax: 60,
+      delaiAvionMin: 7, delaiAvionMax: 15,
     });
     setView('edit');
   };
 
-  const editDevis = (d: MrgDevis) => { setCurrentDevis(d); setView('edit'); };
+  const editDevis = (d: MrgDevis) => {
+    // Backfill defaults for older devis
+    setCurrentDevis({
+      showBateau: true, showAvion: true,
+      delaiBateauMin: 45, delaiBateauMax: 60,
+      delaiAvionMin: 7, delaiAvionMax: 15,
+      ...d,
+    });
+    setView('edit');
+  };
   const deleteDevis = (id: string) => {
     const updated = allDevis.filter(d => d.id !== id);
     storage.setDevis(updated);
