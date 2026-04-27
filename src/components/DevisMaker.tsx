@@ -554,9 +554,9 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
               <tr className="bg-card">
                 <th className="p-2 text-left font-clash uppercase text-xs">N°</th>
                 <th className="p-2 text-right font-clash uppercase text-xs">{t('shippingFees', lang)}</th>
-                <th className="p-2 text-right font-clash uppercase text-xs">{t('boatRecovery', lang)}</th>
-                <th className="p-2 text-right font-clash uppercase text-xs">{t('planeRecovery', lang)}</th>
-                <th className="p-2 text-center font-clash uppercase text-xs">{t('modeChoisi', lang)}</th>
+                {showBateau && <th className="p-2 text-right font-clash uppercase text-xs">{t('boatRecovery', lang)}</th>}
+                {showAvion && <th className="p-2 text-right font-clash uppercase text-xs">{t('planeRecovery', lang)}</th>}
+                {showBateau && showAvion && <th className="p-2 text-center font-clash uppercase text-xs">{t('modeChoisi', lang)}</th>}
               </tr>
             </thead>
             <tbody>
@@ -564,9 +564,9 @@ const DevisMaker = ({ lang, onNavigate }: DevisMakerProps) => {
                 <tr key={l.id} className="border-b border-border">
                   <td className="p-2 font-satoshi">{i + 1}</td>
                   <td className="p-2 text-right font-satoshi">{formatNum(l.fraisExpedition, currentDevis.devise)}</td>
-                  <td className="p-2 text-right font-satoshi">{formatNum(l.fraisRecupBateau, currentDevis.devise)}</td>
-                  <td className="p-2 text-right font-satoshi">{formatNum(l.fraisRecupAvion, currentDevis.devise)}</td>
-                  <td className="p-2 text-center font-satoshi capitalize">{l.modeChoisi}</td>
+                  {showBateau && <td className="p-2 text-right font-satoshi">{formatNum(l.fraisRecupBateau, currentDevis.devise)}</td>}
+                  {showAvion && <td className="p-2 text-right font-satoshi">{formatNum(l.fraisRecupAvion, currentDevis.devise)}</td>}
+                  {showBateau && showAvion && <td className="p-2 text-center font-satoshi capitalize">{l.modeChoisi}</td>}
                 </tr>
               ))}
             </tbody>
