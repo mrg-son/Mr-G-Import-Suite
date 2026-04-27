@@ -1194,14 +1194,42 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
               <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2} className="w-full px-3 py-2 rounded-lg bg-background/40 border border-border/40 font-satoshi resize-none" />
             </div>
 
-            <div className="flex gap-3 pt-2">
-              <button onClick={() => setView('list')} className="flex-1 h-11 rounded-lg border border-border/40 font-satoshi font-medium hover:bg-secondary/50 transition-colors">{t('back', lang)}</button>
-              <button onClick={saveReceipt} className="flex-1 h-11 rounded-lg bg-gradient-to-r from-or to-or/80 text-background font-satoshi font-semibold hover:scale-[1.02] transition-transform shadow-lg shadow-or/20">
-                {t('saveOrder', lang)}
+            <div className="flex flex-wrap gap-3 pt-2">
+              <button onClick={() => setView('list')} className="flex-1 min-w-[120px] h-11 rounded-lg border border-border/40 font-satoshi font-medium hover:bg-secondary/50 transition-colors">{t('back', lang)}</button>
+              <button onClick={downloadDraftPNG} className="flex-1 min-w-[140px] h-11 rounded-lg bg-primary/15 text-primary font-satoshi font-semibold hover:bg-primary/25 transition-colors flex items-center justify-center gap-2">
+                <Download size={16} /> PNG
+              </button>
+              <button onClick={downloadDraftPDF} className="flex-1 min-w-[140px] h-11 rounded-lg bg-or/15 text-or font-satoshi font-semibold hover:bg-or/25 transition-colors flex items-center justify-center gap-2">
+                <Download size={16} /> PDF
+              </button>
+              <button onClick={saveReceipt} className="flex-1 min-w-[160px] h-11 rounded-lg bg-gradient-to-r from-or to-or/80 text-background font-satoshi font-semibold hover:scale-[1.02] transition-transform shadow-lg shadow-or/20">
+                {editing ? t('saveDevis', lang) : t('saveAndPreview', lang)}
               </button>
             </div>
           </div>
         </motion.div>
+
+        {/* ===== Live preview column ===== */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
+          className="lg:sticky lg:top-24"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-clash text-sm uppercase tracking-wider text-muted-foreground">{t('livePreview', lang)}</h2>
+            <span className="text-xs font-satoshi text-muted-foreground">{TEMPLATES[form.template].name[lang]}</span>
+          </div>
+          <div className="rounded-2xl overflow-hidden shadow-2xl border border-border/40 max-h-[80vh] overflow-y-auto">
+            <ReceiptVisual
+              receipt={draft}
+              template={form.template}
+              profil={profil}
+              lang={lang}
+              innerRef={livePreviewRef}
+              compact
+            />
+          </div>
+        </motion.div>
+        </div>
 
         <AlertDialog open={!!confirmFullyPaid} onOpenChange={(o) => !o && setConfirmFullyPaid(null)}>
           <AlertDialogContent>
