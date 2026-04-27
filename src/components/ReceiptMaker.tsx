@@ -376,6 +376,7 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
   const [cancellingReceipt, setCancellingReceipt] = useState<MrgReceipt | null>(null);
   const [cancelReason, setCancelReason] = useState('');
   const exportRef = useRef<HTMLDivElement>(null);
+  const livePreviewRef = useRef<HTMLDivElement>(null);
   const signatureFileRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
