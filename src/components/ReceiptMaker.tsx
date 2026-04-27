@@ -352,11 +352,12 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
     const hasPrevPayments = opt.totalDejaPaye > 0;
     setForm(f => ({
       ...f,
-      source: opt.source, sourceId: opt.id, sourceLabel: opt.label,
+      source: opt.source, sourceId: opt.id,
+      sourceLabel: opt.client, // Concerne = nom du client uniquement
       client: opt.client, clientPhone: opt.clientPhone,
       totalAttendu: opt.totalAttendu, totalDejaPaye: opt.totalDejaPaye,
       devise: opt.devise,
-      montant: reste, // pré-rempli avec ce qui reste, modifiable
+      montant: reste,
       type: hasPrevPayments ? 'partiel' : 'total',
     }));
   };
