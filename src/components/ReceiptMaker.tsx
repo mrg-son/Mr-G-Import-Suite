@@ -685,7 +685,7 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
                         key={r.id}
                         layout
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className={`border-b border-border/20 hover:bg-or/5 transition-colors ${r.cancelled ? 'opacity-60' : ''}`}
+                        className={`group border-b border-border/20 hover:bg-or/5 transition-colors ${r.cancelled ? 'opacity-60' : ''}`}
                       >
                         <td className="p-4 font-mono font-semibold">
                           <span className={r.cancelled ? 'line-through text-muted-foreground' : 'text-or'}>{r.numero}</span>
@@ -711,6 +711,15 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
                             <button onClick={() => { setPreviewing(r); setPreviewTemplate(r.template || 'classique'); setView('preview'); }} className="p-2 rounded-lg hover:bg-or/10 text-or" title={t('preview', lang)}>
                               <Eye size={16} />
                             </button>
+                            {!r.cancelled && (
+                              <button
+                                onClick={() => loadReceiptForEdit(r)}
+                                className="p-2 rounded-lg hover:bg-primary/10 text-primary opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                                title={t('editReceipt', lang)}
+                              >
+                                <Pencil size={16} />
+                              </button>
+                            )}
                             {!r.cancelled && (
                               <button onClick={() => { setCancellingReceipt(r); setCancelReason(''); }} className="p-2 rounded-lg hover:bg-amber-500/10 text-amber-500" title={t('cancelReceipt', lang)}>
                                 <Ban size={16} />
