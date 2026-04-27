@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Download, MessageCircle, Eye, ArrowLeft, Receipt as ReceiptIcon, Search, Ban, Upload, X } from 'lucide-react';
+import { Plus, Trash2, Download, MessageCircle, Eye, ArrowLeft, Receipt as ReceiptIcon, Search, Ban, Upload, X, Pencil } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { receiptStorage, type MrgReceipt } from '@/lib/receiptStorage';
@@ -193,6 +193,150 @@ function numberToWords(n: number, lang: 'fr' | 'en'): string {
   return result.trim();
 }
 
+// ============== Receipt visual (shared between live preview & full preview) ==============
+interface ReceiptVisualProps {
+  receipt: MrgReceipt;
+  template: ReceiptTemplate;
+  profil: { nom?: string; logo?: string };
+  lang: 'fr' | 'en';
+  innerRef?: React.RefObject<HTMLDivElement>;
+  compact?: boolean;
+}
+
+const ReceiptVisual = ({ receipt: r, template, profil, lang, innerRef, compact }: ReceiptVisualProps) => {
+  const theme = TEMPLATES[template];
+  const modeName = r.modePaiement === 'autre' && r.modePaiementCustom
+    ? r.modePaiementCustom
+    : t((r.modePaiement === 'mobile-money' ? 'mobileMoney' : r.modePaiement === 'cash' ? 'cash' : r.modePaiement === 'virement' ? 'transfer' : r.modePaiement === 'carte' ? 'card' : 'other') as any, lang);
+  const pad = compact ? 'p-6' : 'p-10';
+
+  return (
+    <div
+      ref={innerRef}
+      className={`${pad} relative`}
+      style={{ background: theme.bg, color: theme.text, fontFamily: theme.fontFamily }}
+    >
+      {r.cancelled && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10" aria-hidden="true">
+          <div className="text-7xl font-black opacity-15 select-none" style={{ color: '#dc2626', transform: 'rotate(-20deg)', letterSpacing: '0.1em' }}>
+            {t('cancelledLabel', lang)}
+          </div>
+        </div>
+      )}
+
+      {/* Header */}
+      <div className="flex items-start justify-between pb-6" style={{ borderBottom: `1px solid ${theme.border}` }}>
+        <div className="flex items-center gap-3">
+          {profil.logo && <img src={profil.logo} alt="logo" className="h-14 w-14 object-contain rounded-lg" />}
+          <div>
+            <h2 className="font-bold text-2xl" style={{ color: theme.accent }}>{profil.nom || 'Mr.G Suite'}</h2>
+            <p className="text-xs uppercase tracking-widest mt-0.5" style={{ color: theme.textMuted }}>{lang === 'fr' ? 'Reçu de paiement' : 'Payment receipt'}</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="font-mono text-lg font-bold" style={{ color: theme.accent }}>{r.numero}</p>
+          <p className="text-xs mt-1" style={{ color: theme.textMuted }}>
+            {new Date(r.date).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+          </p>
+        </div>
+      </div>
+
+      {/* Client */}
+      <div className="mt-6">
+        <p className="text-xs uppercase tracking-wider" style={{ color: theme.textMuted }}>{t('receivedFrom', lang)}</p>
+        <p className="font-bold text-xl mt-1">{r.client || '—'}</p>
+        {r.clientPhone && <p className="text-sm mt-0.5" style={{ color: theme.textMuted }}>{r.clientPhone}</p>}
+      </div>
+
+      {/* Concerning */}
+      {r.sourceLabel && (
+        <div className="mt-5 p-4 rounded-lg" style={{ background: theme.surface }}>
+          <p className="text-xs uppercase tracking-wider" style={{ color: theme.textMuted }}>{t('concerning', lang)}</p>
+          <p className="font-medium mt-1">{r.sourceLabel}</p>
+        </div>
+      )}
+
+      {/* Produits commandés */}
+      {r.produits && (
+        <div className="mt-4 p-4 rounded-lg" style={{ background: theme.surface, borderLeft: `3px solid ${theme.accent}` }}>
+          <p className="text-xs uppercase tracking-wider mb-2" style={{ color: theme.textMuted }}>{t('products', lang)}</p>
+          <p className="text-sm whitespace-pre-line">{r.produits}</p>
+        </div>
+      )}
+
+      {/* Amount highlight */}
+      <div className="mt-6 p-6 rounded-xl text-center" style={{ background: theme.amountBg, border: theme.amountBg === 'transparent' ? `2px solid ${theme.accent}` : `1px solid ${theme.accent}40` }}>
+        <p className="text-xs uppercase tracking-wider" style={{ color: theme.textMuted }}>{t('theSum', lang)}</p>
+        <p className="font-bold text-4xl mt-2" style={{ color: theme.accent }}>{fmt(r.montant, r.devise)}</p>
+        <p className="text-xs italic mt-2" style={{ color: theme.textMuted }}>({numberToWords(r.montant, lang)} {r.devise})</p>
+      </div>
+
+      {/* Recap table */}
+      {r.totalAttendu > 0 && (() => {
+        const showDeja = r.type === 'partiel' && r.totalDejaPaye > 0;
+        const cols = showDeja ? 'grid-cols-4' : 'grid-cols-3';
+        return (
+          <div className="mt-6 rounded-lg overflow-hidden" style={{ border: `1px solid ${theme.border}` }}>
+            <div className={`grid ${cols} text-xs`} style={{ background: theme.surface }}>
+              <div className="p-3 font-semibold uppercase tracking-wider">{t('totalExpected', lang)}</div>
+              {showDeja && <div className="p-3 font-semibold uppercase tracking-wider">{t('alreadyPaid', lang)}</div>}
+              <div className="p-3 font-semibold uppercase tracking-wider" style={{ color: theme.accent }}>{t('thisPayment', lang)}</div>
+              <div className="p-3 font-semibold uppercase tracking-wider">{t('remainingBalance', lang)}</div>
+            </div>
+            <div className={`grid ${cols} text-sm`}>
+              <div className="p-3">{fmt(r.totalAttendu, r.devise)}</div>
+              {showDeja && <div className="p-3">{fmt(r.totalDejaPaye, r.devise)}</div>}
+              <div className="p-3 font-bold" style={{ color: theme.accent }}>{fmt(r.montant, r.devise)}</div>
+              <div className={`p-3 font-bold ${r.resteAPayer === 0 ? 'text-emerald-500' : ''}`}>{fmt(r.resteAPayer, r.devise)}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Meta */}
+      <div className="grid grid-cols-2 gap-4 mt-6 text-sm">
+        <div>
+          <p className="text-xs uppercase tracking-wider" style={{ color: theme.textMuted }}>{t('paymentMode', lang)}</p>
+          <p className="font-medium mt-1">{modeName}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wider" style={{ color: theme.textMuted }}>{t('paymentType', lang)}</p>
+          <p className="font-medium mt-1">{t((r.type === 'acompte' ? 'typeAcompte' : r.type === 'solde' ? 'typeSolde' : r.type === 'total' ? 'typeTotal' : 'typePartiel') as any, lang)}</p>
+        </div>
+      </div>
+
+      {r.notes && (
+        <div className="mt-5">
+          <p className="text-xs uppercase tracking-wider" style={{ color: theme.textMuted }}>Notes</p>
+          <p className="text-sm mt-1 italic" style={{ color: theme.textMuted }}>{r.notes}</p>
+        </div>
+      )}
+
+      {/* Signature + Lieu */}
+      <div className="mt-10 pt-6 flex items-end justify-between" style={{ borderTop: `1px solid ${theme.border}` }}>
+        <div className="text-xs" style={{ color: theme.textMuted }}>
+          <p>
+            {t('issuedAt', lang)}{' '}
+            {r.lieu ? (
+              <span className="font-bold underline underline-offset-4" style={{ color: theme.text }}>{r.lieu}</span>
+            ) : (
+              <span className="inline-block w-24 border-b" style={{ borderColor: theme.border }}>&nbsp;</span>
+            )}
+            {' '}{t('on', lang)} {new Date(r.date).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US')}
+          </p>
+        </div>
+        <div className="text-right">
+          <div className="w-44 mb-1 flex items-end justify-end" style={{ height: '50px' }}>
+            {r.signatureImage ? <img src={r.signatureImage} alt="signature" className="max-h-[50px] max-w-full object-contain" /> : null}
+          </div>
+          <div className="w-44 border-b" style={{ borderColor: theme.border }} />
+          <p className="text-xs mt-1" style={{ color: theme.textMuted }}>{t('signature', lang)} — {profil.nom || 'Mr.G'}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
   const [view, setView] = useState<View>('list');
   const [receipts, setReceipts] = useState<MrgReceipt[]>(receiptStorage.getReceipts());
@@ -232,6 +376,7 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
   const [cancellingReceipt, setCancellingReceipt] = useState<MrgReceipt | null>(null);
   const [cancelReason, setCancelReason] = useState('');
   const exportRef = useRef<HTMLDivElement>(null);
+  const livePreviewRef = useRef<HTMLDivElement>(null);
   const signatureFileRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -339,6 +484,31 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
     setView('create');
   };
 
+  const loadReceiptForEdit = (r: MrgReceipt) => {
+    setForm({
+      source: r.source,
+      sourceId: r.sourceId || '',
+      client: r.client,
+      clientPhone: r.clientPhone,
+      sourceLabel: r.sourceLabel,
+      montant: r.montant,
+      devise: r.devise,
+      modePaiement: r.modePaiement,
+      modePaiementCustom: r.modePaiementCustom || '',
+      type: r.type,
+      totalAttendu: r.totalAttendu,
+      totalDejaPaye: r.totalDejaPaye,
+      notes: r.notes || '',
+      date: r.date,
+      produits: r.produits || '',
+      lieu: r.lieu || '',
+      signatureImage: r.signatureImage || '',
+      template: r.template || 'classique',
+    });
+    setEditing(r);
+    setView('create');
+  };
+
   const handleSelectSource = (key: string) => {
     if (key === 'manual') {
       setForm(f => ({ ...f, source: 'manual', sourceId: '', sourceLabel: '', client: '', clientPhone: '', totalAttendu: 0, totalDejaPaye: 0, montant: 0, type: 'total' }));
@@ -352,11 +522,12 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
     const hasPrevPayments = opt.totalDejaPaye > 0;
     setForm(f => ({
       ...f,
-      source: opt.source, sourceId: opt.id, sourceLabel: opt.label,
+      source: opt.source, sourceId: opt.id,
+      sourceLabel: opt.client, // Concerne = nom du client uniquement
       client: opt.client, clientPhone: opt.clientPhone,
       totalAttendu: opt.totalAttendu, totalDejaPaye: opt.totalDejaPaye,
       devise: opt.devise,
-      montant: reste, // pré-rempli avec ce qui reste, modifiable
+      montant: reste,
       type: hasPrevPayments ? 'partiel' : 'total',
     }));
   };
@@ -408,7 +579,7 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
       clientPhone: form.clientPhone,
       source: form.source,
       sourceId: form.sourceId || undefined,
-      sourceLabel: form.sourceLabel || (lang === 'fr' ? 'Paiement libre' : 'Free payment'),
+      sourceLabel: form.sourceLabel || form.client || (lang === 'fr' ? 'Paiement libre' : 'Free payment'),
       montant: form.montant,
       devise: form.devise,
       modePaiement: form.modePaiement,
@@ -510,16 +681,12 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
     toast({ title: t('receiptCancelled', lang) });
   };
 
-  const exportPNG = async () => {
-    if (!exportRef.current || !previewing) return;
+  const exportNodeAsPNG = async (node: HTMLElement, template: ReceiptTemplate, filename: string) => {
     try {
-      const theme = TEMPLATES[previewTemplate];
-      const canvas = await html2canvas(exportRef.current, {
-        backgroundColor: theme.bg,
-        scale: 2,
-      });
+      const theme = TEMPLATES[template];
+      const canvas = await html2canvas(node, { backgroundColor: theme.bg, scale: 2 });
       const link = document.createElement('a');
-      link.download = fileNames.receiptPNG(previewing.client, previewing.numero);
+      link.download = filename;
       link.href = canvas.toDataURL('image/png');
       link.click();
     } catch {
@@ -527,14 +694,10 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
     }
   };
 
-  const exportPDF = async () => {
-    if (!exportRef.current || !previewing) return;
+  const exportNodeAsPDF = async (node: HTMLElement, template: ReceiptTemplate, filename: string) => {
     try {
-      const theme = TEMPLATES[previewTemplate];
-      const canvas = await html2canvas(exportRef.current, {
-        backgroundColor: theme.bg,
-        scale: 2,
-      });
+      const theme = TEMPLATES[template];
+      const canvas = await html2canvas(node, { backgroundColor: theme.bg, scale: 2 });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       const pageW = pdf.internal.pageSize.getWidth();
@@ -546,10 +709,60 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
       const x = (pageW - w) / 2;
       const y = (pageH - h) / 2;
       pdf.addImage(imgData, 'PNG', x, y, w, h);
-      pdf.save(fileNames.receiptPDF(previewing.client, previewing.numero));
+      pdf.save(filename);
     } catch {
       toast({ title: 'PDF export failed', variant: 'destructive' });
     }
+  };
+
+  const exportPNG = () => {
+    if (!exportRef.current || !previewing) return;
+    exportNodeAsPNG(exportRef.current, previewTemplate, fileNames.receiptPNG(previewing.client, previewing.numero));
+  };
+
+  const exportPDF = () => {
+    if (!exportRef.current || !previewing) return;
+    exportNodeAsPDF(exportRef.current, previewTemplate, fileNames.receiptPDF(previewing.client, previewing.numero));
+  };
+
+  // Build a draft receipt object from current form state (for live preview & download-without-save)
+  const buildDraftReceipt = (): MrgReceipt => ({
+    id: editing?.id || 'draft',
+    numero: editing?.numero || (lang === 'fr' ? 'Brouillon' : 'Draft'),
+    date: form.date,
+    client: form.client,
+    clientPhone: form.clientPhone,
+    source: form.source,
+    sourceId: form.sourceId || undefined,
+    sourceLabel: form.sourceLabel || form.client || '',
+    montant: form.montant,
+    devise: form.devise,
+    modePaiement: form.modePaiement,
+    modePaiementCustom: form.modePaiementCustom,
+    type: form.type,
+    totalAttendu: form.totalAttendu,
+    totalDejaPaye: effectiveDejaPaye,
+    resteAPayer,
+    notes: form.notes,
+    createdAt: editing?.createdAt || new Date().toISOString(),
+    produits: form.produits,
+    lieu: form.lieu,
+    signatureImage: form.signatureImage,
+    template: form.template,
+  });
+
+  const downloadDraftPNG = () => {
+    if (!livePreviewRef.current) return;
+    const clientName = form.client || 'recu';
+    const num = editing?.numero || 'brouillon';
+    exportNodeAsPNG(livePreviewRef.current, form.template, fileNames.receiptPNG(clientName, num));
+  };
+
+  const downloadDraftPDF = () => {
+    if (!livePreviewRef.current) return;
+    const clientName = form.client || 'recu';
+    const num = editing?.numero || 'brouillon';
+    exportNodeAsPDF(livePreviewRef.current, form.template, fileNames.receiptPDF(clientName, num));
   };
 
   const sendWhatsApp = () => {
@@ -659,7 +872,7 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
                         key={r.id}
                         layout
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className={`border-b border-border/20 hover:bg-or/5 transition-colors ${r.cancelled ? 'opacity-60' : ''}`}
+                        className={`group border-b border-border/20 hover:bg-or/5 transition-colors ${r.cancelled ? 'opacity-60' : ''}`}
                       >
                         <td className="p-4 font-mono font-semibold">
                           <span className={r.cancelled ? 'line-through text-muted-foreground' : 'text-or'}>{r.numero}</span>
@@ -685,6 +898,15 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
                             <button onClick={() => { setPreviewing(r); setPreviewTemplate(r.template || 'classique'); setView('preview'); }} className="p-2 rounded-lg hover:bg-or/10 text-or" title={t('preview', lang)}>
                               <Eye size={16} />
                             </button>
+                            {!r.cancelled && (
+                              <button
+                                onClick={() => loadReceiptForEdit(r)}
+                                className="p-2 rounded-lg hover:bg-primary/10 text-primary opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                                title={t('editReceipt', lang)}
+                              >
+                                <Pencil size={16} />
+                              </button>
+                            )}
                             {!r.cancelled && (
                               <button onClick={() => { setCancellingReceipt(r); setCancelReason(''); }} className="p-2 rounded-lg hover:bg-amber-500/10 text-amber-500" title={t('cancelReceipt', lang)}>
                                 <Ban size={16} />
@@ -747,14 +969,19 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
 
   // ============= CREATE VIEW =============
   if (view === 'create') {
+    const draft = buildDraftReceipt();
     return (
-      <div className="pt-20 pb-12 px-4 max-w-3xl mx-auto">
+      <div className="pt-20 pb-12 px-4 max-w-7xl mx-auto">
         <button onClick={() => setView('list')} className="flex items-center gap-2 mb-6 text-muted-foreground hover:text-foreground font-satoshi text-sm">
           <ArrowLeft size={16} /> {t('back', lang)}
         </button>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="font-clash text-3xl font-bold mb-6 text-foreground">{t('newReceipt', lang)}</h1>
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 items-start">
+          {/* ===== Form column ===== */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <h1 className="font-clash text-3xl font-bold mb-6 text-foreground">
+              {editing ? t('editReceipt', lang) : t('newReceipt', lang)}
+            </h1>
 
           <div className="rounded-2xl p-6 bg-surface-sombre/60 backdrop-blur-xl border border-border/40 space-y-5">
             {/* Source */}
@@ -967,14 +1194,42 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
               <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2} className="w-full px-3 py-2 rounded-lg bg-background/40 border border-border/40 font-satoshi resize-none" />
             </div>
 
-            <div className="flex gap-3 pt-2">
-              <button onClick={() => setView('list')} className="flex-1 h-11 rounded-lg border border-border/40 font-satoshi font-medium hover:bg-secondary/50 transition-colors">{t('back', lang)}</button>
-              <button onClick={saveReceipt} className="flex-1 h-11 rounded-lg bg-gradient-to-r from-or to-or/80 text-background font-satoshi font-semibold hover:scale-[1.02] transition-transform shadow-lg shadow-or/20">
-                {t('saveOrder', lang)}
+            <div className="flex flex-wrap gap-3 pt-2">
+              <button onClick={() => setView('list')} className="flex-1 min-w-[120px] h-11 rounded-lg border border-border/40 font-satoshi font-medium hover:bg-secondary/50 transition-colors">{t('back', lang)}</button>
+              <button onClick={downloadDraftPNG} className="flex-1 min-w-[140px] h-11 rounded-lg bg-primary/15 text-primary font-satoshi font-semibold hover:bg-primary/25 transition-colors flex items-center justify-center gap-2">
+                <Download size={16} /> PNG
+              </button>
+              <button onClick={downloadDraftPDF} className="flex-1 min-w-[140px] h-11 rounded-lg bg-or/15 text-or font-satoshi font-semibold hover:bg-or/25 transition-colors flex items-center justify-center gap-2">
+                <Download size={16} /> PDF
+              </button>
+              <button onClick={saveReceipt} className="flex-1 min-w-[160px] h-11 rounded-lg bg-gradient-to-r from-or to-or/80 text-background font-satoshi font-semibold hover:scale-[1.02] transition-transform shadow-lg shadow-or/20">
+                {editing ? t('saveDevis', lang) : t('saveAndPreview', lang)}
               </button>
             </div>
           </div>
         </motion.div>
+
+        {/* ===== Live preview column ===== */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
+          className="lg:sticky lg:top-24"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-clash text-sm uppercase tracking-wider text-muted-foreground">{t('livePreview', lang)}</h2>
+            <span className="text-xs font-satoshi text-muted-foreground">{TEMPLATES[form.template].name[lang]}</span>
+          </div>
+          <div className="rounded-2xl overflow-hidden shadow-2xl border border-border/40 max-h-[80vh] overflow-y-auto">
+            <ReceiptVisual
+              receipt={draft}
+              template={form.template}
+              profil={profil}
+              lang={lang}
+              innerRef={livePreviewRef}
+              compact
+            />
+          </div>
+        </motion.div>
+        </div>
 
         <AlertDialog open={!!confirmFullyPaid} onOpenChange={(o) => !o && setConfirmFullyPaid(null)}>
           <AlertDialogContent>
@@ -1001,10 +1256,7 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
   // ============= PREVIEW VIEW =============
   if (view === 'preview' && previewing) {
     const r = previewing;
-    const theme = TEMPLATES[previewTemplate];
-    const modeName = r.modePaiement === 'autre' && r.modePaiementCustom
-      ? r.modePaiementCustom
-      : t((r.modePaiement === 'mobile-money' ? 'mobileMoney' : r.modePaiement === 'cash' ? 'cash' : r.modePaiement === 'virement' ? 'transfer' : r.modePaiement === 'carte' ? 'card' : 'other') as any, lang);
+
 
     return (
       <div className="pt-20 pb-12 px-4 max-w-4xl mx-auto">
@@ -1053,145 +1305,7 @@ export default function ReceiptMaker({ lang, scope = 'all' }: Props) {
           className="mx-auto rounded-2xl overflow-hidden shadow-2xl"
           style={{ maxWidth: '720px' }}
         >
-          <div
-            ref={exportRef}
-            className="p-10 relative"
-            style={{ background: theme.bg, color: theme.text, fontFamily: theme.fontFamily }}
-          >
-            {r.cancelled && (
-              <div
-                className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
-                aria-hidden="true"
-              >
-                <div
-                  className="text-7xl font-black opacity-15 select-none"
-                  style={{ color: '#dc2626', transform: 'rotate(-20deg)', letterSpacing: '0.1em' }}
-                >
-                  {t('cancelledLabel', lang)}
-                </div>
-              </div>
-            )}
-
-            {/* Header */}
-            <div className="flex items-start justify-between pb-6" style={{ borderBottom: `1px solid ${theme.border}` }}>
-              <div className="flex items-center gap-3">
-                {profil.logo && <img src={profil.logo} alt="logo" className="h-14 w-14 object-contain rounded-lg" />}
-                <div>
-                  <h2 className="font-bold text-2xl" style={{ color: theme.accent }}>{profil.nom || 'Mr.G Suite'}</h2>
-                  <p className="text-xs uppercase tracking-widest mt-0.5" style={{ color: theme.textMuted }}>{lang === 'fr' ? 'Reçu de paiement' : 'Payment receipt'}</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="font-mono text-lg font-bold" style={{ color: theme.accent }}>{r.numero}</p>
-                <p className="text-xs mt-1" style={{ color: theme.textMuted }}>
-                  {new Date(r.date).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-                </p>
-              </div>
-            </div>
-
-            {/* Client */}
-            <div className="mt-6">
-              <p className="text-xs uppercase tracking-wider" style={{ color: theme.textMuted }}>{t('receivedFrom', lang)}</p>
-              <p className="font-bold text-xl mt-1">{r.client}</p>
-              {r.clientPhone && <p className="text-sm mt-0.5" style={{ color: theme.textMuted }}>{r.clientPhone}</p>}
-            </div>
-
-            {/* Concerning */}
-            <div className="mt-5 p-4 rounded-lg" style={{ background: theme.surface }}>
-              <p className="text-xs uppercase tracking-wider" style={{ color: theme.textMuted }}>{t('concerning', lang)}</p>
-              <p className="font-medium mt-1">{r.sourceLabel}</p>
-            </div>
-
-            {/* Produits commandés */}
-            {r.produits && (
-              <div className="mt-4 p-4 rounded-lg" style={{ background: theme.surface, borderLeft: `3px solid ${theme.accent}` }}>
-                <p className="text-xs uppercase tracking-wider mb-2" style={{ color: theme.textMuted }}>{t('products', lang)}</p>
-                <p className="text-sm whitespace-pre-line">{r.produits}</p>
-              </div>
-            )}
-
-            {/* Amount highlight */}
-            <div
-              className="mt-6 p-6 rounded-xl text-center"
-              style={{
-                background: theme.amountBg,
-                border: theme.amountBg === 'transparent' ? `2px solid ${theme.accent}` : `1px solid ${theme.accent}40`,
-              }}
-            >
-              <p className="text-xs uppercase tracking-wider" style={{ color: theme.textMuted }}>{t('theSum', lang)}</p>
-              <p className="font-bold text-4xl mt-2" style={{ color: theme.accent }}>
-                {fmt(r.montant, r.devise)}
-              </p>
-              <p className="text-xs italic mt-2" style={{ color: theme.textMuted }}>
-                ({numberToWords(r.montant, lang)} {r.devise})
-              </p>
-            </div>
-
-            {/* Recap table — colonne "déjà reçu" uniquement pour paiement partiel */}
-            {r.totalAttendu > 0 && (() => {
-              const showDeja = r.type === 'partiel' && r.totalDejaPaye > 0;
-              const cols = showDeja ? 'grid-cols-4' : 'grid-cols-3';
-              return (
-                <div className="mt-6 rounded-lg overflow-hidden" style={{ border: `1px solid ${theme.border}` }}>
-                  <div className={`grid ${cols} text-xs`} style={{ background: theme.surface }}>
-                    <div className="p-3 font-semibold uppercase tracking-wider">{t('totalExpected', lang)}</div>
-                    {showDeja && <div className="p-3 font-semibold uppercase tracking-wider">{t('alreadyPaid', lang)}</div>}
-                    <div className="p-3 font-semibold uppercase tracking-wider" style={{ color: theme.accent }}>{t('thisPayment', lang)}</div>
-                    <div className="p-3 font-semibold uppercase tracking-wider">{t('remainingBalance', lang)}</div>
-                  </div>
-                  <div className={`grid ${cols} text-sm`}>
-                    <div className="p-3">{fmt(r.totalAttendu, r.devise)}</div>
-                    {showDeja && <div className="p-3">{fmt(r.totalDejaPaye, r.devise)}</div>}
-                    <div className="p-3 font-bold" style={{ color: theme.accent }}>{fmt(r.montant, r.devise)}</div>
-                    <div className={`p-3 font-bold ${r.resteAPayer === 0 ? 'text-emerald-500' : ''}`}>{fmt(r.resteAPayer, r.devise)}</div>
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* Meta */}
-            <div className="grid grid-cols-2 gap-4 mt-6 text-sm">
-              <div>
-                <p className="text-xs uppercase tracking-wider" style={{ color: theme.textMuted }}>{t('paymentMode', lang)}</p>
-                <p className="font-medium mt-1">{modeName}</p>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-wider" style={{ color: theme.textMuted }}>{t('paymentType', lang)}</p>
-                <p className="font-medium mt-1">{t((r.type === 'acompte' ? 'typeAcompte' : r.type === 'solde' ? 'typeSolde' : r.type === 'total' ? 'typeTotal' : 'typePartiel') as any, lang)}</p>
-              </div>
-            </div>
-
-            {r.notes && (
-              <div className="mt-5">
-                <p className="text-xs uppercase tracking-wider" style={{ color: theme.textMuted }}>Notes</p>
-                <p className="text-sm mt-1 italic" style={{ color: theme.textMuted }}>{r.notes}</p>
-              </div>
-            )}
-
-            {/* Signature + Lieu */}
-            <div className="mt-10 pt-6 flex items-end justify-between" style={{ borderTop: `1px solid ${theme.border}` }}>
-              <div className="text-xs" style={{ color: theme.textMuted }}>
-                <p>
-                  {t('issuedAt', lang)}{' '}
-                  {r.lieu ? (
-                    <span className="font-bold underline underline-offset-4" style={{ color: theme.text }}>{r.lieu}</span>
-                  ) : (
-                    <span className="inline-block w-24 border-b" style={{ borderColor: theme.border }}>&nbsp;</span>
-                  )}
-                  {' '}{t('on', lang)} {new Date(r.date).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US')}
-                </p>
-              </div>
-              <div className="text-right">
-                <div className="w-44 mb-1 flex items-end justify-end" style={{ height: '50px' }}>
-                  {r.signatureImage ? (
-                    <img src={r.signatureImage} alt="signature" className="max-h-[50px] max-w-full object-contain" />
-                  ) : null}
-                </div>
-                <div className="w-44 border-b" style={{ borderColor: theme.border }} />
-                <p className="text-xs mt-1" style={{ color: theme.textMuted }}>{t('signature', lang)} — {profil.nom || 'Mr.G'}</p>
-              </div>
-            </div>
-          </div>
+          <ReceiptVisual receipt={r} template={previewTemplate} profil={profil} lang={lang} innerRef={exportRef} />
         </motion.div>
       </div>
     );
